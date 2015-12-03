@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151201065559) do
+ActiveRecord::Schema.define(version: 20151203101504) do
 
   create_table "admin_logs", force: :cascade do |t|
     t.string   "username",     limit: 50
@@ -481,6 +481,23 @@ ActiveRecord::Schema.define(version: 20151201065559) do
   end
 
   add_index "client_team", ["client_portfolio_id"], name: "fk_client_team_client_portfolio1_idx", using: :btree
+
+  create_table "code_categories", force: :cascade do |t|
+    t.string   "name",       limit: 255
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
+
+  create_table "code_review_categories", force: :cascade do |t|
+    t.string   "name",             limit: 255
+    t.integer  "code_category_id", limit: 4
+    t.integer  "code_review_id",   limit: 4
+    t.datetime "created_at",                   null: false
+    t.datetime "updated_at",                   null: false
+  end
+
+  add_index "code_review_categories", ["code_category_id"], name: "index_code_review_categories_on_code_category_id", using: :btree
+  add_index "code_review_categories", ["code_review_id"], name: "index_code_review_categories_on_code_review_id", using: :btree
 
   create_table "code_reviews", force: :cascade do |t|
     t.string   "issue_type",         limit: 255
@@ -1847,6 +1864,8 @@ ActiveRecord::Schema.define(version: 20151201065559) do
   add_foreign_key "client_projects_questions", "client_projects", column: "client_projects_id", name: "fk_client_projects_questions_client_projects1"
   add_foreign_key "client_services", "client_profiles", column: "client_profiles_id", name: "fk_client_services_client_profiles1"
   add_foreign_key "client_team", "client_portfolio", name: "fk_client_team_client_portfolio1"
+  add_foreign_key "code_review_categories", "code_categories"
+  add_foreign_key "code_review_categories", "code_reviews"
   add_foreign_key "countries", "regions", column: "regions_id", name: "fk_countries_regions1"
   add_foreign_key "decline_response", "decline_partner_questions", column: "decline_partner_questions_id", name: "partner_question"
   add_foreign_key "decline_response", "suppliers_projects", column: "suppliers_projects_id", name: "supplierProject_id"

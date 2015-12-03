@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  code_category_id: 
+  code_review_id: 
+
+two:
+  name: MyString
+  code_category_id: 
+  code_review_id: 
