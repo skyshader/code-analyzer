@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  type: 
+  check_name: MyString
+  description: MyText
+  engine_name: MyString
+
+two:
+  type: 
+  check_name: MyString
+  description: MyText
+  engine_name: MyString

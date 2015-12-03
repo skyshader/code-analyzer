@@ -1,0 +1,8 @@
+JSON Output<br/><br/>
+
+<% @data_hash.each do |data| %>
+	<% data.each do |d| %>
+		<%= d %><br/>
+	<% end %>
+	<%= data['type'] %><br/><br/>
+<% end %>
