@@ -1,0 +1,23 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  username: MyString
+  repo_name: MyString
+  clone_path: MyString
+  default_branch: MyString
+  current_branch: MyString
+  gpa: MyString
+  analysis_status: 1
+  status: 1
+  supplier_project_id: 1
+
+two:
+  username: MyString
+  repo_name: MyString
+  clone_path: MyString
+  default_branch: MyString
+  current_branch: MyString
+  gpa: MyString
+  analysis_status: 1
+  status: 1
+  supplier_project_id: 1

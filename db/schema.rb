@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151203101504) do
+ActiveRecord::Schema.define(version: 20151208122539) do
 
   create_table "admin_logs", force: :cascade do |t|
     t.string   "username",     limit: 50
@@ -1178,6 +1178,18 @@ ActiveRecord::Schema.define(version: 20151203101504) do
     t.integer "status",      limit: 1
   end
 
+  create_table "repo_category_stats", force: :cascade do |t|
+    t.integer  "issues_count",             limit: 4
+    t.integer  "version",                  limit: 4
+    t.integer  "supplier_project_repo_id", limit: 4
+    t.integer  "code_category_id",         limit: 4
+    t.datetime "created_at",                         null: false
+    t.datetime "updated_at",                         null: false
+  end
+
+  add_index "repo_category_stats", ["code_category_id"], name: "index_repo_category_stats_on_code_category_id", using: :btree
+  add_index "repo_category_stats", ["supplier_project_repo_id"], name: "index_repo_category_stats_on_supplier_project_repo_id", using: :btree
+
   create_table "review_category", force: :cascade do |t|
     t.string   "name",        limit: 100
     t.text     "description", limit: 65535
@@ -1287,6 +1299,21 @@ ActiveRecord::Schema.define(version: 20151203101504) do
   end
 
   add_index "supplier_has_milestones", ["suppliers_id"], name: "fk_supplier_has_milestones_suppliers1_idx", using: :btree
+
+  create_table "supplier_project_repos", force: :cascade do |t|
+    t.string   "username",            limit: 255
+    t.string   "repo_name",           limit: 255
+    t.string   "clone_url",           limit: 255
+    t.string   "clone_path",          limit: 255
+    t.string   "default_branch",      limit: 255
+    t.string   "current_branch",      limit: 255
+    t.string   "gpa",                 limit: 255
+    t.integer  "analysis_status",     limit: 4
+    t.integer  "status",              limit: 4
+    t.integer  "supplier_project_id", limit: 4
+    t.datetime "created_at",                      null: false
+    t.datetime "updated_at",                      null: false
+  end
 
   create_table "suppliers", force: :cascade do |t|
     t.string   "first_name",                 limit: 250
@@ -1929,6 +1956,8 @@ ActiveRecord::Schema.define(version: 20151203101504) do
   add_foreign_key "referral", "role", column: "users_role", name: "fk_member_role"
   add_foreign_key "referral", "users", column: "referance_id", name: "fk_refranced_user"
   add_foreign_key "referral", "users", column: "referral_id", name: "fk_referral_member"
+  add_foreign_key "repo_category_stats", "code_categories"
+  add_foreign_key "repo_category_stats", "supplier_project_repos"
   add_foreign_key "review_questions", "review_category", name: "fk_review_questions_review_category1"
   add_foreign_key "search_criteria", "users", name: "user", on_update: :cascade, on_delete: :cascade
   add_foreign_key "supplier_has_milestones", "suppliers", column: "suppliers_id", name: "fk_supplier_has_milestones_suppliers1"

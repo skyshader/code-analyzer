@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  issues_count: 1
+  supplier_project_repo_id_id: 
+  code_category_id_id: 
+
+two:
+  issues_count: 1
+  supplier_project_repo_id_id: 
+  code_category_id_id: 
