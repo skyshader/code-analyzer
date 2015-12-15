@@ -1,6 +1,5 @@
 Rails.application.routes.draw do
   root 'main#index'
-  post 'main/processUrl'
-  get 'main/repo/:id', to: 'main#repo'
-  get 'main/readJson/:id', to: 'main#readJson'
+  post 'main/process_url'
+  get 'main/repo/:repo_id/:analysis_type', to: 'main#repo'
 end
