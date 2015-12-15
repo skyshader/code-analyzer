@@ -1302,6 +1302,7 @@ ActiveRecord::Schema.define(version: 20151208122539) do
 
   create_table "supplier_project_repos", force: :cascade do |t|
     t.string   "username",            limit: 255
+    t.integer  "supplier_project_id", limit: 4
     t.string   "repo_name",           limit: 255
     t.string   "clone_url",           limit: 255
     t.string   "clone_path",          limit: 255
@@ -1310,9 +1311,11 @@ ActiveRecord::Schema.define(version: 20151208122539) do
     t.string   "gpa",                 limit: 255
     t.integer  "analysis_status",     limit: 4
     t.integer  "status",              limit: 4
-    t.integer  "supplier_project_id", limit: 4
-    t.datetime "created_at",                      null: false
-    t.datetime "updated_at",                      null: false
+    t.integer  "is_error",            limit: 4
+    t.integer  "error_status",        limit: 4
+    t.text     "error_message",       limit: 65535
+    t.datetime "created_at",                        null: false
+    t.datetime "updated_at",                        null: false
   end
 
   create_table "suppliers", force: :cascade do |t|

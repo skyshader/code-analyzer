@@ -31,10 +31,19 @@ class MainController < ApplicationController
     end
 
     def full_analysis repo
-      # clone_repo repo
+      # go to path - not accessible to public
+      puts 'Creating directory'
+      repo_name = repo.repo_name.gsub(/[.]+/, '-') || repo.repo_name
+      repo_path = Rails.root.join('storage', 'repos', repo.username, repo_name)
+      FileUtils.mkdir_p(repo_path) unless File.directory?(repo_path)
+      Dir.chdir(repo_path)
+      repo.update(clone_path: repo_path)
+
       clone_repo repo
       puts '---- completed full analysis -------'
     rescue Exception => e
+      repo.update(clone_path: nil)
+      FileUtils.rm_rf(Rails.root.join('storage', 'repos', repo.username))
       puts '-- Failed full analysis --'
     end
 
@@ -45,20 +54,22 @@ class MainController < ApplicationController
 
     # set status on basis of tasks
     def set_status(repo, status)
-      puts status
       yield
-      # change the status in db
+      repo.update(analysis_status: status, error_status: nil, error_message: nil)
     rescue Exception => e
-      # reset db status
+      repo.update(analysis_status: 0, error_status: status, error_message: e.to_s)
       raise
     end
 
     # clone the requested repo
     def clone_repo repo
-      set_status(repo, 'Clone Repository') {
-        cmd = 'git clone ' + repo.clone_url + ' | exit 1'
-        system(cmd) or raise Exception.new("Repository not found!")
-        puts '>>>>>>>>>>>>cloning success<<<<<<<<<<<<<<<<<<'
+      set_status(repo, 1) {
+        clone_cmd = 'git clone ' + repo.clone_url + ' ' + repo.default_branch
+        clone_error = 'Not able to clone repository. Please make sure the repository exists.'
+        system(clone_cmd)
+        if $? != 0 then
+          raise Exception.new(clone_error)
+        end
       }
     end
 

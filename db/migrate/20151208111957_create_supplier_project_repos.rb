@@ -2,6 +2,7 @@ class CreateSupplierProjectRepos < ActiveRecord::Migration
   def change
     create_table :supplier_project_repos do |t|
       t.string :username
+      t.integer :supplier_project_id
       t.string :repo_name
       t.string :clone_url
       t.string :clone_path
@@ -10,7 +11,9 @@ class CreateSupplierProjectRepos < ActiveRecord::Migration
       t.string :gpa
       t.integer :analysis_status
       t.integer :status
-      t.integer :supplier_project_id
+      t.integer :is_error
+      t.integer :error_status
+      t.text :error_message
 
       t.timestamps null: false
     end
