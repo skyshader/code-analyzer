@@ -31,14 +31,7 @@ class MainController < ApplicationController
     end
 
     def full_analysis repo
-      # go to path - not accessible to public
-      puts 'Creating directory'
-      repo_name = repo.repo_name.gsub(/[.]+/, '-') || repo.repo_name
-      repo_path = Rails.root.join('storage', 'repos', repo.username, repo_name)
-      FileUtils.mkdir_p(repo_path) unless File.directory?(repo_path)
-      Dir.chdir(repo_path)
-      repo.update(clone_path: repo_path)
-
+      initial_path_setup repo
       clone_repo repo
       puts '---- completed full analysis -------'
     rescue Exception => e
@@ -61,6 +54,15 @@ class MainController < ApplicationController
       raise
     end
 
+    # initial setup for clone path
+    def initial_path_setup repo
+      repo_name = repo.repo_name.gsub(/[.]+/, '-') || repo.repo_name
+      repo_path = Rails.root.join('storage', 'repos', repo.username, repo_name)
+      FileUtils.mkdir_p(repo_path) unless File.directory?(repo_path)
+      Dir.chdir(repo_path)
+      repo.update(clone_path: repo_path)
+    end
+
     # clone the requested repo
     def clone_repo repo
       set_status(repo, 1) {
@@ -75,8 +77,11 @@ class MainController < ApplicationController
 
     # initialize analysis config files
     def init_repo
-      cmd = 'codeclimate init'
-      puts `#{cmd}`
+      init_cmd = 'codeclimate init'
+      system(init_cmd)
+      if $? != 0 then
+        raise Exception.new(clone_error)
+      end
       # exclude unnecessary files in root
     end
 
