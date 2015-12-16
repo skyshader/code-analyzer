@@ -13,12 +13,14 @@ class MainController < ApplicationController
     @status = begin_analysis(repo_id, type)
   end
 
+
+  # start private methods
   private
+
     # determine the type of analysis on the repo
     def begin_analysis(repo_id, type)
       repo = get_repo_to_process repo_id
       Thread.new do
-        puts type + '//////////////////////////'
         if type == 'full'
           full_analysis repo
         elsif type == 'refresh'
@@ -33,6 +35,7 @@ class MainController < ApplicationController
     def full_analysis repo
       initial_path_setup repo
       clone_repo repo
+      init_repo repo
       puts '---- completed full analysis -------'
     rescue Exception => e
       repo.update(clone_path: nil)
@@ -67,22 +70,26 @@ class MainController < ApplicationController
     def clone_repo repo
       set_status(repo, 1) {
         clone_cmd = 'git clone ' + repo.clone_url + ' ' + repo.default_branch
-        clone_error = 'Not able to clone repository. Please make sure the repository exists.'
         system(clone_cmd)
         if $? != 0 then
-          raise Exception.new(clone_error)
+          raise Exception.new('Failed to clone repository.')
         end
       }
     end
 
     # initialize analysis config files
-    def init_repo
-      init_cmd = 'codeclimate init'
-      system(init_cmd)
-      if $? != 0 then
-        raise Exception.new(clone_error)
-      end
-      # exclude unnecessary files in root
+    def init_repo repo
+      set_status(repo, 2) {
+        init_cmd = 'codeclimate init'
+        system(init_cmd)
+        if $? != 0 then
+          raise Exception.new('Failed to initialize configuration.')
+        end
+      }
+    end
+
+    # exclude unnecessary files
+    def exclude_files
     end
 
     # begin analysis
@@ -111,9 +118,7 @@ class MainController < ApplicationController
         data['categories'].each do |cat|
           code_category = CodeCategory.find_by name: cat
           if !code_category then
-            code_category = CodeCategory.new(
-              :name=>cat
-            )
+            code_category = CodeCategory.new(:name=>cat)
             code_category.save
           end
 
