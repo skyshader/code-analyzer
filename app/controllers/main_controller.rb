@@ -36,6 +36,8 @@ class MainController < ApplicationController
       initial_path_setup repo
       clone_repo repo
       init_repo repo
+      exclude_files repo
+      result_json = analyze_repo repo
       puts '---- completed full analysis -------'
     rescue Exception => e
       repo.update(clone_path: nil)
@@ -74,6 +76,7 @@ class MainController < ApplicationController
         if $? != 0 then
           raise Exception.new('Failed to clone repository.')
         end
+        Dir.chdir(repo.default_branch)
       }
     end
 
@@ -89,13 +92,21 @@ class MainController < ApplicationController
     end
 
     # exclude unnecessary files
-    def exclude_files
+    def exclude_files repo
+      config = YAML.load_file('.codeclimate.yml')
+      config["exclude_paths"] |= [".git/**/*", ".*", "**.md", "**.json", "**.log", "lib/**/*", "bin/**/*", "log/**/*", "vendor/**/*", "tmp/**/*", "assets/**/*"]
+      File.open('.codeclimate.yml', 'w') {|f| f.write config.to_yaml }
     end
 
     # begin analysis
-    def analyze_repo
-      cmd = 'codeclimate analyze -f json'
-      report_json = `#{cmd}`
+    def analyze_repo repo
+      set_status(repo, 3) {
+        analyze_cmd = 'codeclimate analyze -f json'
+        report_json = system(analyze_cmd)
+        if $? != 0 then
+          raise Exception.new('Failed to analyse repository.')
+        end
+      }
     end
 
     def store_data(data)
