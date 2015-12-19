@@ -45,3 +45,9 @@ group :development do
   gem 'spring'
 end
 
+group :production do
+  # To enable STDOUT logging in Rails
+  gem 'rails_12factor'
+end
+
+ruby "2.2.3"
