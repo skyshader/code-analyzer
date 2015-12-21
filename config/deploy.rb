@@ -8,7 +8,7 @@ set :repo_url, 'git@github.com:skyshader/code-analyzer.git'
 # ask :branch, proc { `git rev-parse --abbrev-ref HEAD`.chomp }
 
 # Default deploy_to directory is /var/www/my_app
-set :deploy_to, '/home/deploy/myapp/current/public/code-analyzer'
+set :deploy_to, '/home/deploy/code-analyzer'
 
 # Default value for :scm is :git
 # set :scm, :git

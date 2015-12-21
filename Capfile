@@ -14,6 +14,7 @@ require 'capistrano/deploy'
 #   https://github.com/capistrano/bundler
 #   https://github.com/capistrano/rails
 #
+
 require 'capistrano/rvm'
 # require 'capistrano/rbenv'
 # require 'capistrano/chruby'
@@ -27,7 +28,7 @@ require 'capistrano/rails'
 # set :rbenv_ruby, '2.2.3p173'
 
 set :rvm_type, :user
-set :rvm_ruby_version, '2.2.3p173'
+set :rvm_ruby_version, '2.2.3'
 
 # Loads custom tasks from `lib/capistrano/tasks' if you have any defined.
 Dir.glob('lib/capistrano/tasks/*.cap').each { |r| import r }
