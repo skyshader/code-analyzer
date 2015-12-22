@@ -4,7 +4,6 @@ class MainController < ApplicationController
 
   def process_url
     url = params[:url]
-    process_repo(url)
   end
 
   def repo
@@ -37,12 +36,22 @@ class MainController < ApplicationController
       clone_repo repo
       init_repo repo
       exclude_files repo
-      result_json = analyze_repo repo
+      report_json = analyze_repo repo
+      store_data(report_json, repo)
       puts '---- completed full analysis -------'
     rescue Exception => e
       repo.update(clone_path: nil)
-      FileUtils.rm_rf(Rails.root.join('storage', 'repos', repo.username))
+      FileUtils.rm_rf(Rails.root.join('storage', 'repos', repo.username + '_' + repo.supplier_project_id))
       puts '-- Failed full analysis --'
+    end
+
+    def refresh_analysis repo
+      switch_repo_path repo
+      pull_repo repo
+      calculate_results repo
+      puts 'Success refresh'
+    rescue
+      puts 'Failed refresh'
     end
 
     # return the requested repo from db
@@ -62,10 +71,26 @@ class MainController < ApplicationController
     # initial setup for clone path
     def initial_path_setup repo
       repo_name = repo.repo_name.gsub(/[.]+/, '-') || repo.repo_name
-      repo_path = Rails.root.join('storage', 'repos', repo.username, repo_name)
+      repo_path = Rails.root.join('storage', 'repos', repo.username + '_' + repo.supplier_project_id, repo_name)
       FileUtils.mkdir_p(repo_path) unless File.directory?(repo_path)
       Dir.chdir(repo_path)
       repo.update(clone_path: repo_path)
+    end
+
+    # switch to repo path provided
+    def switch_repo_path repo
+      Dir.chdir(repo.clone_path + '/' + repo.current_branch)
+    end
+
+    # run pull command to get fresh repo
+    def pull_repo repo
+      set_status(repo, 6) {
+        pull_cmd = 'git checkout ' + repo.current_branch + ' & git pull origin ' + repo.current_branch;
+        system(pull_cmd)
+        if $? != 0 then
+          raise Exception.new('Not able to pull from repository.')
+        end
+      }
     end
 
     # clone the requested repo
@@ -94,7 +119,7 @@ class MainController < ApplicationController
     # exclude unnecessary files
     def exclude_files repo
       config = YAML.load_file('.codeclimate.yml')
-      config["exclude_paths"] |= [".git/**/*", ".*", "**.md", "**.json", "**.log", "lib/**/*", "bin/**/*", "log/**/*", "vendor/**/*", "tmp/**/*", "assets/**/*"]
+      config["exclude_paths"] |= [".git/**/*", ".*", "**.md", "**.json", "**.yml", "**.log", "lib/**/*", "bin/**/*", "log/**/*", "vendor/**/*", "tmp/**/*", "assets/**/*"]
       File.open('.codeclimate.yml', 'w') {|f| f.write config.to_yaml }
     end
 
@@ -102,46 +127,88 @@ class MainController < ApplicationController
     def analyze_repo repo
       set_status(repo, 3) {
         analyze_cmd = 'codeclimate analyze -f json'
-        report_json = system(analyze_cmd)
+        report_json = `#{analyze_cmd}`
         if $? != 0 then
           raise Exception.new('Failed to analyse repository.')
+        end
+       return report_json
+      }
+    end
+
+    def store_data(report_json, repo)
+      set_status(repo, 4) {
+        data_hash = JSON.parse(report_json)
+        data_hash.each do |data|
+          # insert code review
+          review = CodeReview.new(
+            :issue_type=>data['type'],
+            :check_name=>data['check_name'],
+            :description=>data['description'],
+            :engine_name=>data['engine_name'],
+            :file_path=>data['location']['path'],
+            :line_begin=>data['location']['lines']['begin'],
+            :line_end=>data['location']['lines']['end'],
+            :remediation_points=>data['remediation_points'] || nil,
+            :supplier_project_repo_id=>repo.id
+          )
+          review.save
+
+          # check for categories that exist
+          data['categories'].each do |cat|
+            code_category = CodeCategory.find_by name: cat
+            if !code_category then
+              code_category = CodeCategory.new(:name=>cat)
+              code_category.save
+            end
+
+            # save reviews categories
+            code_review_category = CodeReviewCategory.new(
+              :name=>code_category.name,
+              :code_category_id=>code_category.id,
+              :code_review_id=>review.id
+            )
+            code_review_category.save
+          end
         end
       }
     end
 
-    def store_data(data)
-      data_hash = JSON.parse(report_json)
-      data_hash.each do |data|
-        # insert code review
-        review = CodeReview.new(
-          :issue_type=>data['type'],
-          :check_name=>data['check_name'],
-          :description=>data['description'],
-          :engine_name=>data['engine_name'],
-          :file_path=>data['location']['path'],
-          :line_begin=>data['location']['lines']['begin'],
-          :line_end=>data['location']['lines']['end'],
-          :remediation_points=>data['remediation_points'] || nil
-        )
-        review.save
-
-        # check for categories that exist
-        data['categories'].each do |cat|
-          code_category = CodeCategory.find_by name: cat
-          if !code_category then
-            code_category = CodeCategory.new(:name=>cat)
-            code_category.save
+    def calculate_results repo
+      set_status(repo, 6) {
+        files = files_to_analyze
+        issues = []
+        repo.code_review.each do |review|
+          if files.include?(review.file_path)
+            puts review.file_path + ' >> ' + review.description
           end
+        end
+      }
+    end
 
-          # save reviews categories
-          code_review_category = CodeReviewCategory.new(
-            :name=>code_category.name,
-            :code_category_id=>code_category.id,
-            :code_review_id=>review.id
-          )
-          code_review_category.save
+    def files_to_analyze
+      require 'find'
+      ignore_dirs = ['.git','test','bin','assets','lib','log','vendor','tmp']
+      ignore_files = Regexp.union(/^\..*$/i, /^.*(.md)$/i, /^.*(.json)$/i, /^.*(.yml)$/i, /^.*(.log)$/i)
+      final_files = []
+      # for every file in repository - keep the files to process
+      Find.find('.') do |path|
+        path_name = File.basename(path)
+        if FileTest.directory?(path)
+          if ignore_dirs.include?(path_name)
+            Find.prune
+          else
+            next
+          end
+        else
+          if path_name.match(ignore_files)
+            next
+          else
+            path.gsub!(/^\.\//, '')
+            final_files.push(path)
+          end
         end
       end
+      return final_files
     end
 
 end
