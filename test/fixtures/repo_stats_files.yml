@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  total_lines: 1
+  lines_with_error: 1
+  total_errors: 1
+  repo_category_stat_id: 
+
+two:
+  total_lines: 1
+  lines_with_error: 1
+  total_errors: 1
+  repo_category_stat_id: 
