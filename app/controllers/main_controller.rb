@@ -71,7 +71,7 @@ class MainController < ApplicationController
     # initial setup for clone path
     def initial_path_setup repo
       repo_name = repo.repo_name.gsub(/[.]+/, '-') || repo.repo_name
-      repo_path = Rails.root.join('storage', 'repos', repo.username + '_' + repo.supplier_project_id, repo_name)
+      repo_path = Rails.root.join('storage', 'repos', repo.username, repo.supplier_project_id.to_s, repo_name)
       FileUtils.mkdir_p(repo_path) unless File.directory?(repo_path)
       Dir.chdir(repo_path)
       repo.update(clone_path: repo_path)
@@ -157,7 +157,7 @@ class MainController < ApplicationController
           data['categories'].each do |cat|
             code_category = CodeCategory.find_by name: cat
             if !code_category then
-              code_category = CodeCategory.new(:name=>cat)
+              code_category = CodeCategory.new(:name=>cat, :weight=>10)
               code_category.save
             end
 
@@ -176,12 +176,11 @@ class MainController < ApplicationController
     def calculate_results repo
       set_status(repo, 6) {
         files = files_to_analyze
-        issues = []
-        repo.code_review.each do |review|
-          if files.include?(review.file_path)
-            puts review.file_path + ' >> ' + review.description
-          end
-        end
+        files_hash = prepare_files_to_rate files
+        files_hash = count_total_lines files_hash
+        files_hash = count_errors(files_hash, repo)
+        
+        puts files_hash
       }
     end
 
@@ -209,6 +208,44 @@ class MainController < ApplicationController
         end
       end
       return final_files
+    end
+
+    def prepare_files_to_rate files
+      f = {}
+      files.each do |file|
+        f[file] = {'total_lines'=>0, 'lines_with_error'=>0, 'total_errors'=>0}
+        f[file]['categories'] = {}
+        CodeCategory.find_each do |category|
+          f[file]['categories'] = f[file]['categories'].merge({category.name => 0})
+        end
+      end
+      return f
+    end
+
+    def count_total_lines files
+      files.each do |f, k|
+        lines_output = `wc -l #{f.to_s}`
+        if $? != 0 then
+          raise Exception.new('Error in counting total lines.')
+        end
+        lines_count = lines_output.strip.split(' ')[0].to_i
+        k['total_lines'] = lines_count
+      end
+      return files
+    end
+
+    def count_errors(files, repo)
+      repo.code_review.each do |review|
+        if files.has_key?(review.file_path)
+          files[review.file_path]['total_errors'] += 1
+          error_lines = (review.line_end - review.line_begin) + 1
+          files[review.file_path]['lines_with_error'] += error_lines
+          review.code_category.each do |category|
+            files[review.file_path]['categories'][category.name] += 1
+          end
+        end
+      end
+      return files
     end
 
 end
