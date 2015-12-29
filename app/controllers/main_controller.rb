@@ -12,19 +12,83 @@ class MainController < ApplicationController
     @status = begin_analysis(repo_id, type)
   end
 
-  def generate_key
+  def process_key
     email = params[:email]
     if email.empty?
       @data = {'success'=>false, 'email'=>'Email not provided.'}
     else
-      @data = {'success'=>true,'email'=>email}
+      @data = generate_ssh email
     end
+    render json: @data
+  rescue Exception => e
+    @data = {'success'=>false, 'message'=>e.to_s}
     render json: @data
   end
 
 
   # start private methods
   private
+
+    # generate ssh keys for accessing users private repo
+    def generate_ssh email
+      ssh_file = ssh_keygen email
+      ssh_add ssh_file
+      ssh_modify_config(email, ssh_file)
+      public_key = ssh_public_key ssh_file
+      data = {'success'=>true, 'public_key'=>public_key, 'email'=>email}
+      return data
+    end
+
+    def ssh_keygen email
+      ssh_file = ENV['HOME'] + '/.ssh/id_rsa_' + email.split('@')[0]
+      if !File.file?(ssh_file)
+        genssh_cmd = "ssh-keygen -t rsa -C '#{email}' -f '#{ssh_file}' -N ''"
+        system(genssh_cmd)
+        if $? != 0 then
+          raise Exception.new('Failed to generate ssh key.')
+        end
+        return ssh_file
+      else
+        raise Exception.new('Key already exists.')
+      end
+    end
+
+    def ssh_add ssh_file
+      addssh_cmd = "ssh-add #{ssh_file}"
+      system(addssh_cmd)
+      if $? != 0 then
+        raise Exception.new('Failed to add ssh key.')
+      end
+    end
+
+    def ssh_modify_config(email, ssh_file)
+      config_path = verify_config
+      email_prefix = email.split('@')[0]
+      File.open(config_path, 'a') do |f|
+        f.puts("##{email_prefix} account")
+        f.puts("Host github.com-#{email_prefix}")
+        f.puts("    HostName github.com")
+        f.puts("    User git")
+        f.puts("    IdentityFile #{ssh_file}")
+        f.puts("")
+      end
+    end
+
+    def verify_config
+      config_path = ENV['HOME'] + '/.ssh/config'
+      if !File.file?(config_path)
+        create_config_cmd = "touch #{config_path}"
+        system(create_config_cmd)
+        if $? != 0 then
+          raise Exception.new('Failed to create config file.')
+        end
+      end
+      return config_path
+    end
+
+    def ssh_public_key ssh_file
+      return File.read(ssh_file + '.pub')
+    end
 
     # determine the type of analysis on the repo
     def begin_analysis(repo_id, type)
