@@ -20,7 +20,7 @@ class MainController < ApplicationController
       @data = generate_ssh email
     end
     render json: @data
-  rescue Exception => e
+  rescue RuntimeError => e
     @data = {'success'=>false, 'message'=>e.to_s}
     render json: @data
   end
@@ -31,33 +31,40 @@ class MainController < ApplicationController
 
     # generate ssh keys for accessing users private repo
     def generate_ssh email
-      ssh_file = ssh_keygen email
-      ssh_add ssh_file
-      ssh_modify_config(email, ssh_file)
+      ssh_file = ENV['HOME'] + '/.ssh/id_rsa_' + email.split('@')[0]
+      key_exist = ssh_key_exist ssh_file
+      if !key_exist
+        ssh_keygen(email, ssh_file)
+        ssh_add ssh_file
+        ssh_modify_config(email, ssh_file)
+      end
       public_key = ssh_public_key ssh_file
       data = {'success'=>true, 'public_key'=>public_key, 'email'=>email}
       return data
     end
 
-    def ssh_keygen email
-      ssh_file = ENV['HOME'] + '/.ssh/id_rsa_' + email.split('@')[0]
-      if !File.file?(ssh_file)
-        genssh_cmd = "ssh-keygen -t rsa -C '#{email}' -f '#{ssh_file}' -N ''"
-        system(genssh_cmd)
-        if $? != 0 then
-          raise Exception.new('Failed to generate ssh key.')
-        end
-        return ssh_file
+    def ssh_key_exist ssh_file
+      if File.file?(ssh_file)
+        return true
       else
-        raise Exception.new('Key already exists.')
+        return false
       end
+    end
+
+    def ssh_keygen(email, ssh_file)
+      genssh_cmd = "ssh-keygen -t rsa -C '#{email}' -f '#{ssh_file}' -N ''"
+      system(genssh_cmd)
+      if $? != 0 then
+        raise 'Failed to generate ssh key.'
+      end
+      return ssh_file
     end
 
     def ssh_add ssh_file
       addssh_cmd = "ssh-add #{ssh_file}"
       system(addssh_cmd)
       if $? != 0 then
-        raise Exception.new('Failed to add ssh key.')
+        raise 'Failed to add ssh key.'
       end
     end
 
@@ -80,7 +87,7 @@ class MainController < ApplicationController
         create_config_cmd = "touch #{config_path}"
         system(create_config_cmd)
         if $? != 0 then
-          raise Exception.new('Failed to create config file.')
+          raise 'Failed to create config file.'
         end
       end
       return config_path
