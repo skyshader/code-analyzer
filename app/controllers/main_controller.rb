@@ -14,11 +14,12 @@ class MainController < ApplicationController
 
   def process_key
     email = CGI::unescape(params[:email])
+    username = params[:username]
     puts email + '------------------------'
-    if email.empty?
-      @data = {'success'=>false, 'email'=>'Email not provided.'}
+    if email.empty? || username.empty?
+      @data = {'success'=>false, 'email'=>'Email/username not provided.'}
     else
-      @data = generate_ssh email
+      @data = generate_ssh(email, username)
     end
     render json: @data
   rescue RuntimeError => e
@@ -31,13 +32,13 @@ class MainController < ApplicationController
   private
 
     # generate ssh keys for accessing users private repo
-    def generate_ssh email
-      ssh_file = ENV['HOME'] + '/.ssh/id_rsa_' + email.split('@')[0]
+    def generate_ssh(email, username)
+      ssh_file = ENV['HOME'] + '/.ssh/id_rsa_' + username
       key_exist = ssh_key_exist ssh_file
       if !key_exist
         ssh_keygen(email, ssh_file)
         ssh_add ssh_file
-        ssh_modify_config(email, ssh_file)
+        ssh_modify_config(username, ssh_file)
       end
       public_key = ssh_public_key ssh_file
       data = {'success'=>true, 'public_key'=>public_key, 'email'=>email}
@@ -70,12 +71,11 @@ class MainController < ApplicationController
       end
     end
 
-    def ssh_modify_config(email, ssh_file)
+    def ssh_modify_config(username, ssh_file)
       config_path = verify_config
-      email_prefix = email.split('@')[0]
       File.open(config_path, 'a') do |f|
-        f.puts("##{email_prefix} account")
-        f.puts("Host github.com-#{email_prefix}")
+        f.puts("##{username} account")
+        f.puts("Host github.com-#{username}")
         f.puts("    HostName github.com")
         f.puts("    User git")
         f.puts("    IdentityFile #{ssh_file}")
@@ -179,7 +179,12 @@ class MainController < ApplicationController
     # clone the requested repo
     def clone_repo repo
       set_status(repo, 1) {
-        clone_cmd = 'git clone ' + repo.clone_url + ' ' + repo.default_branch
+        clone_url = repo.clone_url.clone
+        # for private repo convert ssh url to use keys
+        if repo.is_private === 1
+          clone_url = clone_url.insert(clone_url.index(':'), "-" + repo.username)
+        end
+        clone_cmd = 'git clone ' + clone_url + ' ' + repo.default_branch
         system(clone_cmd)
         if $? != 0 then
           raise Exception.new('Failed to clone repository.')
