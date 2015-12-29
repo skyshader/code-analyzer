@@ -62,7 +62,8 @@ class MainController < ApplicationController
     end
 
     def ssh_add ssh_file
-      addssh_cmd = "ssh-add #{ssh_file}"
+      invoke_ssh_agent = 'eval "$(ssh-agent -s)"'
+      addssh_cmd = "#{invoke_ssh_agent} & ssh-add #{ssh_file}"
       system(addssh_cmd)
       if $? != 0 then
         raise 'Failed to add ssh key.'
