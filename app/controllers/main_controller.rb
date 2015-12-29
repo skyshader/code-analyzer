@@ -12,6 +12,12 @@ class MainController < ApplicationController
     @status = begin_analysis(repo_id, type)
   end
 
+  def generate_key
+    email = params[:email]
+    @data = {'email'=>email}
+    render json: @data
+  end
+
 
   # start private methods
   private
