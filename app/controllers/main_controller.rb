@@ -14,7 +14,11 @@ class MainController < ApplicationController
 
   def generate_key
     email = params[:email]
-    @data = {'email'=>email}
+    if email.empty?
+      @data = {'success'=>false, 'email'=>'Email not provided.'}
+    else
+      @data = {'success'=>true,'email'=>email}
+    end
     render json: @data
   end
 
