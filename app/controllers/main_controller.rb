@@ -13,7 +13,8 @@ class MainController < ApplicationController
   end
 
   def process_key
-    email = params[:email]
+    email = CGI::unescape(params[:email])
+    puts email + '------------------------'
     if email.empty?
       @data = {'success'=>false, 'email'=>'Email not provided.'}
     else
