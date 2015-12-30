@@ -104,7 +104,7 @@ class MainController < ApplicationController
         end
       end
       msg = { :success => true, :message => "Please wait while we process the repository!" }
-    rescue
+    rescue RuntimeError => e
       msg = { :success => false, :message => "Failed to get repository!" }
     end
 
@@ -117,7 +117,7 @@ class MainController < ApplicationController
       report_json = analyze_repo repo
       store_data(report_json, repo)
       puts '---- completed full analysis -------'
-    rescue Exception => e
+    rescue RuntimeError => e
       repo.update(clone_path: nil)
       FileUtils.rm_rf(Rails.root.join('storage', 'repos', repo.username + '_' + repo.supplier_project_id))
       puts '-- Failed full analysis --'
@@ -127,9 +127,11 @@ class MainController < ApplicationController
     def refresh_analysis repo
       switch_repo_path repo
       pull_repo repo
+      report_json = analyze_repo repo
+      store_data(report_json, repo)
       calculate_results repo
       puts 'Success refresh'
-    rescue
+    rescue RuntimeError => e
       puts 'Failed refresh'
     end
 
@@ -142,7 +144,7 @@ class MainController < ApplicationController
     def set_status(repo, status)
       yield
       repo.update(analysis_status: status, error_status: nil, error_message: nil)
-    rescue Exception => e
+    rescue RuntimeError => e
       repo.update(analysis_status: 0, error_status: status, error_message: e.to_s)
       raise
     end
@@ -167,7 +169,7 @@ class MainController < ApplicationController
         pull_cmd = 'git checkout ' + repo.current_branch + ' & git pull origin ' + repo.current_branch;
         system(pull_cmd)
         if $? != 0 then
-          raise Exception.new('Not able to pull from repository.')
+          raise 'Not able to pull from repository.'
         end
       }
     end
@@ -183,7 +185,7 @@ class MainController < ApplicationController
         clone_cmd = 'git clone ' + clone_url + ' ' + repo.default_branch
         system(clone_cmd)
         if $? != 0 then
-          raise Exception.new('Failed to clone repository.')
+          raise 'Failed to clone repository.'
         end
         Dir.chdir(repo.default_branch)
       }
@@ -195,7 +197,7 @@ class MainController < ApplicationController
         init_cmd = 'codeclimate init'
         system(init_cmd)
         if $? != 0 then
-          raise Exception.new('Failed to initialize configuration.')
+          raise 'Failed to initialize configuration.'
         end
       }
     end
@@ -203,7 +205,7 @@ class MainController < ApplicationController
     # exclude unnecessary files
     def exclude_files repo
       config = YAML.load_file('.codeclimate.yml')
-      config["exclude_paths"] |= [".git/**/*", ".*", "**.md", "**.json", "**.yml", "**.log", "lib/**/*", "bin/**/*", "log/**/*", "vendor/**/*", "tmp/**/*", "assets/**/*"]
+      config["exclude_paths"] |= [".git/**/*", ".*", "**.md", "**.json", "**.yml", "**.log", "lib/**/*", "bin/**/*", "log/**/*", "vendor/**/*", "tmp/**/*", "assets/**/*", "test/**/*"]
       File.open('.codeclimate.yml', 'w') {|f| f.write config.to_yaml }
     end
 
@@ -213,7 +215,7 @@ class MainController < ApplicationController
         analyze_cmd = 'codeclimate analyze -f json'
         report_json = `#{analyze_cmd}`
         if $? != 0 then
-          raise Exception.new('Failed to analyse repository.')
+          raise 'Failed to analyse repository.'
         end
        return report_json
       }
@@ -221,6 +223,8 @@ class MainController < ApplicationController
 
     def store_data(report_json, repo)
       set_status(repo, 4) {
+        # get rid of previous reviews
+        CodeReview.destroy_all(supplier_project_repo_id: repo.id)
         data_hash = JSON.parse(report_json)
         data_hash.each do |data|
           # insert code review
@@ -263,14 +267,13 @@ class MainController < ApplicationController
         files_hash = prepare_files_to_rate files
         files_hash = count_total_lines files_hash
         files_hash = count_errors(files_hash, repo)
-        
         puts files_hash
       }
     end
 
     def files_to_analyze
       require 'find'
-      ignore_dirs = ['.git','test','bin','assets','lib','log','vendor','tmp']
+      ignore_dirs = ['.git','bin','assets','lib','log','vendor','tmp']
       ignore_files = Regexp.union(/^\..*$/i, /^.*(.md)$/i, /^.*(.json)$/i, /^.*(.yml)$/i, /^.*(.log)$/i)
       final_files = []
       # for every file in repository - keep the files to process
