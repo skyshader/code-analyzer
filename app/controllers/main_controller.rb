@@ -14,7 +14,7 @@ class MainController < ApplicationController
 
   def process_key
     username = params[:git_name]
-    email = CGI::unescape(params[:email])
+    email = Base64.decode64(params[:email])
     if email.empty? || username.empty?
       @data = {'success'=>false, 'email'=>'Email/username not provided.'}
     else
