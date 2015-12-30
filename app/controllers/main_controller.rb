@@ -36,7 +36,6 @@ class MainController < ApplicationController
       key_exist = ssh_key_exist ssh_file
       if !key_exist
         ssh_keygen(email, ssh_file)
-        ssh_add ssh_file
         ssh_modify_config(username, ssh_file)
       end
       public_key = ssh_public_key ssh_file
@@ -44,6 +43,7 @@ class MainController < ApplicationController
       return data
     end
 
+    # check if ssh key already exist
     def ssh_key_exist ssh_file
       if File.file?(ssh_file)
         return true
@@ -52,6 +52,7 @@ class MainController < ApplicationController
       end
     end
 
+    # generate new ssh key
     def ssh_keygen(email, ssh_file)
       genssh_cmd = "ssh-keygen -t rsa -C '#{email}' -f '#{ssh_file}' -N ''"
       system(genssh_cmd)
@@ -61,15 +62,7 @@ class MainController < ApplicationController
       return ssh_file
     end
 
-    def ssh_add ssh_file
-      invoke_ssh_agent = 'eval "$(ssh-agent -s)"'
-      addssh_cmd = "#{invoke_ssh_agent} & ssh-add #{ssh_file}"
-      system(addssh_cmd)
-      if $? != 0 then
-        raise 'Failed to add ssh key.'
-      end
-    end
-
+    # add details to ssh config
     def ssh_modify_config(username, ssh_file)
       config_path = verify_config
       File.open(config_path, 'a') do |f|
@@ -82,6 +75,7 @@ class MainController < ApplicationController
       end
     end
 
+    # if ssh config file does not exist, create one
     def verify_config
       config_path = ENV['HOME'] + '/.ssh/config'
       if !File.file?(config_path)
@@ -94,6 +88,7 @@ class MainController < ApplicationController
       return config_path
     end
 
+    # return public ssh key
     def ssh_public_key ssh_file
       return File.read(ssh_file + '.pub')
     end
@@ -113,6 +108,7 @@ class MainController < ApplicationController
       msg = { :success => false, :message => "Failed to get repository!" }
     end
 
+    # perform full analysis of the repo
     def full_analysis repo
       initial_path_setup repo
       clone_repo repo
@@ -127,6 +123,7 @@ class MainController < ApplicationController
       puts '-- Failed full analysis --'
     end
 
+    # refresh the analysis for repo
     def refresh_analysis repo
       switch_repo_path repo
       pull_repo repo
