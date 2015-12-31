@@ -126,13 +126,13 @@ class MainController < ApplicationController
     # refresh the analysis for repo
     def refresh_analysis repo
       switch_repo_path repo
-      pull_repo repo
-      report_json = analyze_repo repo
-      store_data(report_json, repo)
+      # pull_repo repo
+      # report_json = analyze_repo repo
+      # store_data(report_json, repo)
       calculate_results repo
       puts 'Success refresh'
-    rescue RuntimeError => e
-      puts 'Failed refresh'
+    rescue Exception => e
+      puts 'Failed refresh' + e.to_s
     end
 
     # return the requested repo from db
@@ -264,10 +264,16 @@ class MainController < ApplicationController
     def calculate_results repo
       set_status(repo, 6) {
         files = files_to_analyze
-        files_hash = prepare_files_to_rate files
-        files_hash = count_total_lines files_hash
-        files_hash = count_errors(files_hash, repo)
-        puts files_hash
+        files = prepare_files_to_rate files
+        files = count_total_lines files
+        files = count_errors(files, repo)
+        files = grade_categories files
+        files = grade_files files
+        puts files
+        gpa = grade_repo files
+        cat_issues = get_category_issues files
+        store_cat_issues(repo, cat_issues)
+        puts 'stored data'
       }
     end
 
@@ -303,7 +309,8 @@ class MainController < ApplicationController
         f[file] = {'total_lines'=>0, 'lines_with_error'=>0, 'total_errors'=>0}
         f[file]['categories'] = {}
         CodeCategory.find_each do |category|
-          f[file]['categories'] = f[file]['categories'].merge({category.name => 0})
+          f[file]['categories'] = f[file]['categories'].merge({category.name => {}})
+          f[file]['categories'][category.name] = f[file]['categories'][category.name].merge({'total_errors'=>0, 'lines_with_error'=>0, 'weight'=>category.weight})
         end
       end
       return f
@@ -328,11 +335,82 @@ class MainController < ApplicationController
           error_lines = (review.line_end - review.line_begin) + 1
           files[review.file_path]['lines_with_error'] += error_lines
           review.code_category.each do |category|
-            files[review.file_path]['categories'][category.name] += 1
+            files[review.file_path]['categories'][category.name]['total_errors'] += 1
+            files[review.file_path]['categories'][category.name]['lines_with_error'] += error_lines
           end
         end
       end
       return files
+    end
+
+    def grade_categories files
+      files.each do |f|
+        f[1]['categories'].each do |cat|
+          safe_lines = f[1]['total_lines'] - cat[1]['lines_with_error']
+          if safe_lines < 0
+            safe_lines = 0
+          end
+          cat_grade = (safe_lines.to_f / f[1]['total_lines'].to_f) * 4
+          cat[1] = cat[1].merge({'grade'=>cat_grade.round(1)})
+          files[f[0]]['categories'][cat[0]] = cat[1]
+        end
+      end
+      return files
+    end
+
+    def grade_files files
+      total_weight = 0
+      CodeCategory.find_each do |category|
+        total_weight += category.weight
+      end
+      files.each do |f|
+        grade = 0
+        f[1]['categories'].each do |cat|
+          grade += (cat[1]['grade'].to_f * ((cat[1]['weight'].to_f / total_weight.to_f)))
+        end
+        files[f[0]] = f[1].merge({'grade'=>grade.round(1)})
+      end
+      return files
+    end
+
+    def grade_repo files
+      total_lines = 0
+      files.each do |f|
+        total_lines += f[1]['total_lines']
+      end
+      repo_grade = 0
+      files.each do |f|
+        file_grade = (f[1]['total_lines'] / total_lines.to_f) * f[1]['grade']
+        repo_grade += file_grade
+      end
+      return repo_grade.round(1)
+    end
+
+    def get_category_issues files
+      cat_issues = {}
+      CodeCategory.find_each do |category|
+        cat_issues = cat_issues.merge({category.name => {'count' => 0, 'id' => category.id}})
+      end
+      files.each do |f|
+        f[1]['categories'].each do |cat|
+          cat_issues[cat[0]]['count'] += cat[1]['total_errors']
+        end
+      end
+      return cat_issues
+    end
+
+    def store_cat_issues(repo, cat_issues)
+      cat_issues.each do |issue|
+        cat_stat = RepoCategoryStat.where("supplier_project_repo_id = #{repo.id} AND code_category_id = #{issue[1]['id']}")
+        if cat_stat.empty?
+          cat_stat = RepoCategoryStat.new
+        end
+        cat_stat.issues_count = issue[1]['count']
+        cat_stat.version = 1
+        cat_stat.supplier_project_repo_id = repo.id
+        cat_stat.code_category_id = issue[1]['id']
+        cat_stat.save
+      end
     end
 
 end
