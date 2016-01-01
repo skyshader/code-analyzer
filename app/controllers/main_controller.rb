@@ -100,8 +100,8 @@ class MainController < ApplicationController
         end
       end
       msg = { :success => true, :message => "Please wait while we process the repository!" }
-    rescue RuntimeError => e
-      msg = { :success => false, :message => "Failed to get repository!" }
+    rescue Exception => e
+      msg = { :success => false, :message => "Failed to get repository! " + e.to_s }
     end
 
     # perform full analysis of the repo
