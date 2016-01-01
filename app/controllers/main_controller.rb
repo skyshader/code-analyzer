@@ -2,10 +2,6 @@ class MainController < ApplicationController
   def index
 	end
 
-  def process_url
-    url = params[:url]
-  end
-
   def repo
     repo_id = params[:repo_id]
     type = params[:analysis_type]
