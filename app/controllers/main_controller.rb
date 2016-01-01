@@ -116,23 +116,24 @@ class MainController < ApplicationController
       exclude_files repo
       report_json = analyze_repo repo
       store_data(report_json, repo)
-      puts '---- completed full analysis -------'
-    rescue RuntimeError => e
+      calculate_results repo
+      puts "---- Completed full analysis ---- repo_id:" + repo.id.to_s 
+    rescue Exception => e
       repo.update(clone_path: nil)
       FileUtils.rm_rf(Rails.root.join('storage', 'repos', repo.username + '_' + repo.supplier_project_id))
-      puts '-- Failed full analysis --'
+      puts "-- Failed full analysis -- repo_id:" + repo.id.to_s + " -- Exception: " + e.to_s
     end
 
     # refresh the analysis for repo
     def refresh_analysis repo
       switch_repo_path repo
-      # pull_repo repo
-      # report_json = analyze_repo repo
-      # store_data(report_json, repo)
+      pull_repo repo
+      report_json = analyze_repo repo
+      store_data(report_json, repo)
       calculate_results repo
-      puts 'Success refresh'
+      puts "---- Completed refresh analysis ---- repo_id:" + repo.id.to_s 
     rescue Exception => e
-      puts 'Failed refresh' + e.to_s
+      puts "-- Failed refresh analysis -- repo_id:" + repo.id.to_s + " -- Exception: " + e.to_s
     end
 
     # return the requested repo from db
@@ -165,7 +166,7 @@ class MainController < ApplicationController
 
     # run pull command to get fresh repo
     def pull_repo repo
-      set_status(repo, 6) {
+      set_status(repo, 2) {
         pull_cmd = 'git checkout ' + repo.current_branch + ' & git pull origin ' + repo.current_branch;
         system(pull_cmd)
         if $? != 0 then
@@ -262,24 +263,35 @@ class MainController < ApplicationController
     end
 
     def calculate_results repo
-      set_status(repo, 6) {
+      set_status(repo, 5) {
         files = files_to_analyze
+        puts '-----Files to analyze done (Step 1)'
         files = prepare_files_to_rate files
+        puts '-----Prepare files to rate done (Step 2)'
         files = count_total_lines files
+        puts '-----Count total lines done (Step 3)'
         files = count_errors(files, repo)
+        puts '-----Count errors done (Step 4)'
         files = grade_categories files
+        puts '-----Grade categories done (Step 5)'
         files = grade_files files
-        puts files
+        puts '-----Grade files done (Step 6)'
         gpa = grade_repo files
+        puts '-----Grade repos done (Step 7)'
+        gpa_percent = get_overall_grades files
+        puts '-----Grade overall percentage done (Step 8)'
         cat_issues = get_category_issues files
+        puts '-----Get categories issues done (Step 9)'
         store_cat_issues(repo, cat_issues)
-        puts 'stored data'
+        puts '-----Store category issues done (Step 10)'
+        store_grades(repo, gpa, gpa_percent)
+        puts '-----Store grades done (Step 11)'
       }
     end
 
     def files_to_analyze
       require 'find'
-      ignore_dirs = ['.git','bin','assets','lib','log','vendor','tmp']
+      ignore_dirs = ['.git','bin','test','assets','lib','log','vendor','tmp']
       ignore_files = Regexp.union(/^\..*$/i, /^.*(.md)$/i, /^.*(.json)$/i, /^.*(.yml)$/i, /^.*(.log)$/i)
       final_files = []
       # for every file in repository - keep the files to process
@@ -401,8 +413,8 @@ class MainController < ApplicationController
 
     def store_cat_issues(repo, cat_issues)
       cat_issues.each do |issue|
-        cat_stat = RepoCategoryStat.where("supplier_project_repo_id = #{repo.id} AND code_category_id = #{issue[1]['id']}")
-        if cat_stat.empty?
+        cat_stat = RepoCategoryStat.find_by supplier_project_repo_id: repo.id, code_category_id: issue[1]['id']
+        if !cat_stat
           cat_stat = RepoCategoryStat.new
         end
         cat_stat.issues_count = issue[1]['count']
@@ -411,6 +423,35 @@ class MainController < ApplicationController
         cat_stat.code_category_id = issue[1]['id']
         cat_stat.save
       end
+    end
+
+    def get_overall_grades files
+      total_files = 0
+      grade_count = {'A'=>0, 'B'=>0, 'C'=>0, 'D'=>0, 'F'=>0}
+      files.each do |f|
+        total_files += 1
+        if f[1]['grade'].between?(3.5, 4.0)
+          grade_count['A'] += 1
+        elsif f[1]['grade'].between?(2.5, 3.5)
+          grade_count['B'] += 1
+        elsif f[1]['grade'].between?(1.5, 2.5)
+          grade_count['C'] += 1
+        elsif f[1]['grade'].between?(0.5, 1.5)
+          grade_count['D'] += 1
+        elsif f[1]['grade'].between?(0, 0.5)
+          grade_count['F'] += 1
+        end
+      end
+      grade_count.each do |g|
+        grade_count[g[0]] = ((g[1]/total_files.to_f) * 100).round(2)
+      end
+      return grade_count
+    end
+
+    def store_grades(repo, gpa, gpa_percent)
+      gpa_percent = gpa_percent.merge({'gpa'=>gpa})
+      gpa_percent = gpa_percent.to_json
+      repo.update(gpa: gpa_percent)
     end
 
 end
