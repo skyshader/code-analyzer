@@ -6,6 +6,7 @@ class MainController < ApplicationController
     repo_id = params[:repo_id]
     type = params[:analysis_type]
     @status = begin_analysis(repo_id, type)
+    render json: @status
   end
 
   def process_key
