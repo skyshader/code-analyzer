@@ -18,7 +18,7 @@ class MainController < ApplicationController
       @data = generate_ssh(email, username)
     end
     render json: @data
-  rescue RuntimeError => e
+  rescue => e
     @data = {'success'=>false, 'message'=>e.to_s}
     render json: @data
   end
@@ -101,30 +101,22 @@ class MainController < ApplicationController
         end
       end
       msg = { :success => true, :message => "Please wait while we process the repository!" }
-    rescue Exception => e
+    rescue => e
       msg = { :success => false, :message => "Failed to get repository! " + e.to_s }
     end
 
     # perform full analysis of the repo
     def full_analysis repo
       initial_path_setup repo
-      Rails.logger.info '01 FULL-ANALYSIS: Initial Path Setup [DONE]'
       clone_repo repo
-      Rails.logger.info '02 FULL-ANALYSIS: Cloned Repository [DONE]'
       init_repo repo
-      Rails.logger.info '03 FULL-ANALYSIS: Init Codeclimate Config [DONE]'
       exclude_files repo
-      Rails.logger.info '04 FULL-ANALYSIS: Exclude Files [DONE]'
       report_json = analyze_repo repo
-      Rails.logger.info '05 FULL-ANALYSIS: Analyzed Repositoy [DONE] >> json result: ' + report_json.to_s
       store_data(report_json, repo)
-      Rails.logger.info '06 FULL-ANALYSIS: Stored Data [DONE]'
       calculate_results repo
-      Rails.logger.info "---- Completed full analysis ---- repo_id:" + repo.id.to_s 
-    rescue Exception => e
+    rescue => e
       repo.update(clone_path: nil)
       FileUtils.rm_rf(Rails.root.join('storage', 'repos', repo.username + '_' + repo.supplier_project_id))
-      puts "-- Failed full analysis -- repo_id:" + repo.id.to_s + " -- Exception: " + e.to_s
     end
 
     # refresh the analysis for repo
@@ -134,9 +126,8 @@ class MainController < ApplicationController
       report_json = analyze_repo repo
       store_data(report_json, repo)
       calculate_results repo
-      puts "---- Completed refresh analysis ---- repo_id:" + repo.id.to_s 
-    rescue Exception => e
-      puts "-- Failed refresh analysis -- repo_id:" + repo.id.to_s + " -- Exception: " + e.to_s
+    rescue
+      raise
     end
 
     # return the requested repo from db
@@ -148,7 +139,7 @@ class MainController < ApplicationController
     def set_status(repo, status)
       yield
       repo.update(analysis_status: status, error_status: nil, error_message: nil)
-    rescue RuntimeError => e
+    rescue => e
       repo.update(analysis_status: 0, error_status: status, error_message: e.to_s)
       raise
     end
@@ -335,7 +326,7 @@ class MainController < ApplicationController
       files.each do |f, k|
         lines_output = `wc -l #{f.to_s}`
         if $? != 0 then
-          raise Exception.new('Error in counting total lines.')
+          raise 'Error in counting total lines.'
         end
         lines_count = lines_output.strip.split(' ')[0].to_i
         k['total_lines'] = lines_count
