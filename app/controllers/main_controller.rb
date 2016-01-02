@@ -108,11 +108,17 @@ class MainController < ApplicationController
     # perform full analysis of the repo
     def full_analysis repo
       initial_path_setup repo
+      puts '01 FULL-ANALYSIS: Initial Path Setup [DONE]'
       clone_repo repo
+      puts '02 FULL-ANALYSIS: Cloned Repository [DONE]'
       init_repo repo
+      puts '03 FULL-ANALYSIS: Init Codeclimate Config [DONE]'
       exclude_files repo
+      puts '04 FULL-ANALYSIS: Exclude Files [DONE]'
       report_json = analyze_repo repo
+      puts '05 FULL-ANALYSIS: Analyzed Repositoy [DONE] >> json result: ' + report_json.to_s
       store_data(report_json, repo)
+      puts '06 FULL-ANALYSIS: Stored Data [DONE]'
       calculate_results repo
       puts "---- Completed full analysis ---- repo_id:" + repo.id.to_s 
     rescue Exception => e
