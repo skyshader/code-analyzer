@@ -17,6 +17,7 @@ class MainController < ApplicationController
     else
       @data = generate_ssh(email, username)
     end
+    puts @data.to_s
     render json: @data
   rescue => e
     @data = {'success'=>false, 'message'=>e.to_s}
@@ -28,9 +29,6 @@ class MainController < ApplicationController
     ssh_key_activate username
     @data = {'success'=>true, 'msg'=>'SSH Key verified successfully!'}
     render json: @data
-  rescue => e
-    @data = {'success'=>false, 'message'=>e.to_s}
-    render json: @data
   end
 
 
@@ -41,9 +39,6 @@ class MainController < ApplicationController
     def ssh_key_activate username
       ssh_cmd = 'ssh -T git@github.com-' + username
       system(ssh_cmd)
-      f $? != 0 then
-        raise 'Failed to verify ssh key.'
-      end
     end
 
     # generate ssh keys for accessing users private repo
