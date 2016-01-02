@@ -205,9 +205,9 @@ class MainController < ApplicationController
       set_status(repo, 2) {
         init_cmd = 'codeclimate init'
         init_result = `#{init_cmd}`
-        if $? != 0 then
-          raise 'Failed to initialize configuration.'
-        end
+        # if $? != 0 then
+        #   raise 'Failed to initialize configuration.'
+        # end
       }
     end
 
