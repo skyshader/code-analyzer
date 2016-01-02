@@ -190,7 +190,7 @@ class MainController < ApplicationController
     def init_repo repo
       set_status(repo, 2) {
         init_cmd = 'codeclimate init'
-        system(init_cmd)
+        init_result = `#{init_cmd}`
         if $? != 0 then
           raise 'Failed to initialize configuration.'
         end
