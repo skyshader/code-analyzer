@@ -5,6 +5,7 @@ class MainController < ApplicationController
   def repo
     repo_id = params[:repo_id]
     type = params[:analysis_type]
+    logger.debug "Going to start " + type + " analysis for " + repo_id.to_s
     @status = begin_analysis(repo_id, type)
     render json: @status
   end
@@ -122,12 +123,19 @@ class MainController < ApplicationController
     # perform full analysis of the repo
     def full_analysis repo
       initial_path_setup repo
+      logger.debug "01 - Done setting up initial path - LOG"
       clone_repo repo
+      logger.debug "02 - Done cloning the repository - LOG"
       init_repo repo
+      logger.debug "03 - Done initializing codeclimate - LOG"
       exclude_files repo
+      logger.debug "04 - Done excluding file - LOG"
       report_json = analyze_repo repo
+      logger.debug "05 - Done analyzing the repository - LOG"
       store_data(report_json, repo)
+      logger.debug "06 - Done storing data for the repository - LOG"
       calculate_results repo
+      logger.debug "07 - Done calculating results - LOG"
     rescue => e
       repo.update(clone_path: nil)
       FileUtils.rm_rf(Rails.root.join('storage', 'repos', repo.username + '_' + repo.supplier_project_id))
@@ -136,10 +144,15 @@ class MainController < ApplicationController
     # refresh the analysis for repo
     def refresh_analysis repo
       switch_repo_path repo
+      logger.debug "01 - Done switching to repository path - LOG"
       pull_repo repo
+      logger.debug "02 - Done pulling fresh repository - LOG"
       report_json = analyze_repo repo
+      logger.debug "03 - Done analyzing the repository - LOG"
       store_data(report_json, repo)
+      logger.debug "04 - Done storing the data - LOG"
       calculate_results repo
+      logger.debug "05 - Done calculating the results - LOG"
     rescue
       raise
     end
