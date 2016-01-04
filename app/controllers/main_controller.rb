@@ -265,6 +265,7 @@ class MainController < ApplicationController
             :line_begin=>data['location']['lines']['begin'],
             :line_end=>data['location']['lines']['end'],
             :remediation_points=>data['remediation_points'] || nil,
+            :content=>data['content']['body'] || nil,
             :supplier_project_repo_id=>repo.id
           )
           review.save
