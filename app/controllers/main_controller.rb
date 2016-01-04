@@ -38,7 +38,8 @@ class MainController < ApplicationController
 
     # activate key by requesting github
     def ssh_key_activate username
-      ssh_cmd = 'ssh -T git@github.com-' + username
+      ssh_cmd = "ssh -T git@github.com-" + username
+      puts ssh_cmd
       result = `#{ssh_cmd}`
       logger.debug "SSH Activate - " + result.to_s
     end
