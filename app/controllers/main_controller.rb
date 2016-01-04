@@ -5,6 +5,7 @@ class MainController < ApplicationController
   def repo
     repo_id = params[:repo_id]
     type = params[:analysis_type]
+    logger.debug "Going to start " + type + " analysis for " + repo_id.to_s
     @status = begin_analysis(repo_id, type)
     render json: @status
   end
@@ -122,12 +123,19 @@ class MainController < ApplicationController
     # perform full analysis of the repo
     def full_analysis repo
       initial_path_setup repo
+      logger.debug "01 - Done setting up initial path - LOG"
       clone_repo repo
+      logger.debug "02 - Done cloning the repo - LOG"
       init_repo repo
+      logger.debug "03 - Done initializing codeclimat config - LOG"
       exclude_files repo
+      logger.debug "04 - Done excludiing files - LOG"
       report_json = analyze_repo repo
+      logger.debug "05 - Done analyzing repository - LOG"
       store_data(report_json, repo)
+      logger.debug "06 - Done storing data - LOG"
       calculate_results repo
+      logger.debug "07 - Done calculating result - LOG"
     rescue => e
       repo.update(clone_path: nil)
       FileUtils.rm_rf(Rails.root.join('storage', 'repos', repo.username + '_' + repo.supplier_project_id))
@@ -136,10 +144,15 @@ class MainController < ApplicationController
     # refresh the analysis for repo
     def refresh_analysis repo
       switch_repo_path repo
+      logger.debug "01 - Done switching up initial path - LOG"
       pull_repo repo
+      logger.debug "02 - Done pulling fresh repository - LOG"
       report_json = analyze_repo repo
+      logger.debug "03 - Done analyzing repository - LOG"
       store_data(report_json, repo)
+      logger.debug "04 - Done storing data - LOG"
       calculate_results repo
+      logger.debug "05 - Done calculating results - LOG"
     rescue
       raise
     end
@@ -155,6 +168,7 @@ class MainController < ApplicationController
       repo.update(analysis_status: status, error_status: nil, error_message: nil)
     rescue => e
       repo.update(analysis_status: 0, error_status: status, error_message: e.to_s)
+      logger.debug "Exception at status " + status + " : " + e.to_s
       raise
     end
 
@@ -222,10 +236,12 @@ class MainController < ApplicationController
     def analyze_repo repo
       set_status(repo, 3) {
         analyze_cmd = 'codeclimate analyze -f json'
+        logger.debug "Running analysis command : " + analyze_cmd
         report_json = `#{analyze_cmd}`
-        if $? != 0 then
-          raise 'Failed to analyse repository.'
-        end
+        logger.debug "Analysis report ----" + report_json.to_s
+        # if $? != 0 then
+        #   raise 'Failed to analyse repository.'
+        # end
        return report_json
       }
     end
