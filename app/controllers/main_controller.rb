@@ -38,10 +38,10 @@ class MainController < ApplicationController
 
     # activate key by requesting github
     def ssh_key_activate username
-      ssh_cmd = "sh " + ENV['HOME'] + "/activate-ssh.sh " + username
+      # ssh_cmd = "sh " + ENV['HOME'] + "/activate-ssh.sh " + username
       # ssh_cmd = "ssh -T git@github.com-" + username
-      logger.debug "SSH Command : " + ssh_cmd
-      system(ssh_cmd)
+      # logger.debug "SSH Command : " + ssh_cmd
+      # system(ssh_cmd)
     end
 
     # generate ssh keys for accessing users private repo
