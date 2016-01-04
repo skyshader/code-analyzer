@@ -39,7 +39,8 @@ class MainController < ApplicationController
     # activate key by requesting github
     def ssh_key_activate username
       ssh_cmd = 'ssh -T git@github.com-' + username
-      system(ssh_cmd)
+      result = `#{ssh_cmd}`
+      logger.debug "SSH Activate - " + result.to_s
     end
 
     # generate ssh keys for accessing users private repo
@@ -204,7 +205,7 @@ class MainController < ApplicationController
         # for private repo convert ssh url to use keys
         if repo.is_private === 1
           clone_url = clone_url.insert(clone_url.index(':'), "-" + repo.username)
-        end
+       end
         clone_cmd = 'git clone ' + clone_url + ' ' + repo.default_branch
         system(clone_cmd)
         if $? != 0 then
