@@ -85,6 +85,7 @@ class MainController < ApplicationController
         f.puts("    HostName github.com")
         f.puts("    User git")
         f.puts("    IdentityFile #{ssh_file}")
+        f.puts("    IdentitiesOnly yes")
         f.puts("")
       end
     end
