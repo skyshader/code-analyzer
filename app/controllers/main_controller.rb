@@ -141,7 +141,7 @@ class MainController < ApplicationController
       logger.debug "07 - Done calculating result - LOG"
     rescue => e
       repo.update(clone_path: nil)
-      FileUtils.rm_rf(Rails.root.join('storage', 'repos', repo.username + '_' + repo.supplier_project_id))
+      FileUtils.rm_rf(Rails.root.join('storage', 'repos', repo.username, repo.supplier_project_id.to_s))
     end
 
     # refresh the analysis for repo
@@ -171,7 +171,7 @@ class MainController < ApplicationController
       repo.update(analysis_status: status, error_status: nil, error_message: nil)
     rescue => e
       repo.update(analysis_status: 0, error_status: status, error_message: e.to_s)
-      logger.debug "Exception at status " + status + " : " + e.to_s
+      logger.debug "Exception at status " + status + " : " + e.backtrace.to_s
       raise
     end
 
@@ -265,7 +265,7 @@ class MainController < ApplicationController
             :line_begin=>data['location']['lines']['begin'],
             :line_end=>data['location']['lines']['end'],
             :remediation_points=>data['remediation_points'] || nil,
-            :content=>data['content']['body'] || nil,
+            :content=>data['content'] ? data['content']['body'] : nil,
             :supplier_project_repo_id=>repo.id
           )
           review.save
