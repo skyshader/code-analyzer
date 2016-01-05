@@ -231,7 +231,7 @@ class MainController < ApplicationController
     # exclude unnecessary files
     def exclude_files repo
       config = YAML.load_file('.codeclimate.yml')
-      config["exclude_paths"] |= [".git/**/*", ".*", "**.md", "**.json", "**.yml", "**.log", "lib/**/*", "bin/**/*", "log/**/*", "vendor/**/*", "tmp/**/*", "assets/**/*", "test/**/*"]
+      config["exclude_paths"] |= [".git/**/*", ".*", "**.md", "**.json", "**.yml", "**.log", "lib/**/*", "bin/**/*", "log/**/*", "vendor/**/*", "tmp/**/*", "assets/**/*", "test/**/*", "uploads/**/*", "img/**/*", "images/**/*", "fonts/**/*"]
       File.open('.codeclimate.yml', 'w') {|f| f.write config.to_yaml }
     end
 
@@ -255,6 +255,8 @@ class MainController < ApplicationController
         CodeReview.destroy_all(supplier_project_repo_id: repo.id)
         data_hash = JSON.parse(report_json)
         data_hash.each do |data|
+          begin_line = data['location']['lines'] ? data['location']['lines']['begin'] : data['location']['positions']['begin']['line']
+          end_line = data['location']['lines'] ? data['location']['lines']['end'] : data['location']['positions']['end']['line']
           # insert code review
           review = CodeReview.new(
             :issue_type=>data['type'],
@@ -262,8 +264,8 @@ class MainController < ApplicationController
             :description=>data['description'],
             :engine_name=>data['engine_name'],
             :file_path=>data['location']['path'],
-            :line_begin=>data['location']['lines']['begin'],
-            :line_end=>data['location']['lines']['end'],
+            :line_begin=>begin_line,
+            :line_end=>end_line,
             :remediation_points=>data['remediation_points'] || nil,
             :content=>data['content'] ? data['content']['body'] : nil,
             :supplier_project_repo_id=>repo.id
@@ -303,13 +305,13 @@ class MainController < ApplicationController
         files = grade_categories files
         puts '-----Grade categories done (Step 5)'
         files = grade_files files
-        puts '-----Grade files done (Step 6)'
+        puts '-----Grade files done (Step 6)' + files.to_s
         gpa = grade_repo files
-        puts '-----Grade repos done (Step 7)'
+        puts '-----Grade repos done (Step 7)' + gpa.to_s
         gpa_percent = get_overall_grades files
-        puts '-----Grade overall percentage done (Step 8)'
+        puts '-----Grade overall percentage done (Step 8)' + gpa_percent.to_s
         cat_issues = get_category_issues files
-        puts '-----Get categories issues done (Step 9)'
+        puts '-----Get categories issues done (Step 9)' + cat_issues.to_s
         store_cat_issues(repo, cat_issues)
         puts '-----Store category issues done (Step 10)'
         store_grades(repo, gpa, gpa_percent)
@@ -319,8 +321,8 @@ class MainController < ApplicationController
 
     def files_to_analyze
       require 'find'
-      ignore_dirs = ['.git','bin','test','assets','lib','log','vendor','tmp']
-      ignore_files = Regexp.union(/^\..*$/i, /^.*(.md)$/i, /^.*(.json)$/i, /^.*(.yml)$/i, /^.*(.log)$/i)
+      ignore_dirs = ['.git','bin','test','assets','lib','log','vendor','tmp','img', 'images', 'uploads', 'fonts']
+      ignore_files = Regexp.union(/^\..*$/i, /^.*(.md)$/i, /^.*(.json)$/i, /^.*(.yml)$/i, /^.*(.log)$/i, /^.*(.png)$/i, /^.*(.jpg)$/i, /^.*(.jpeg)$/i)
       final_files = []
       # for every file in repository - keep the files to process
       Find.find('.') do |path|
