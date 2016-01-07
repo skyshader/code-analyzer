@@ -162,15 +162,21 @@ class MainController < ApplicationController
 
     # return the requested repo from db
     def get_repo_to_process(repo_id)
-      repo = SupplierProjectRepo.find(repo_id)
+      ActiveRecord::Base.connection_pool.with_connection do 
+        repo = SupplierProjectRepo.find(repo_id)
+      end
     end
 
     # set status on basis of tasks
     def set_status(repo, status)
       yield
-      repo.update(analysis_status: status, error_status: nil, error_message: nil)
+      ActiveRecord::Base.connection_pool.with_connection do 
+        repo.update(analysis_status: status, error_status: nil, error_message: nil)
+      end
     rescue => e
-      repo.update(analysis_status: 0, error_status: status, error_message: e.to_s)
+      ActiveRecord::Base.connection_pool.with_connection do 
+        repo.update(analysis_status: 0, error_status: status, error_message: e.to_s)
+      end
       logger.debug "Exception at status " + status + " : " + e.backtrace.to_s
       raise
     end
@@ -181,7 +187,9 @@ class MainController < ApplicationController
       repo_path = Rails.root.join('storage', 'repos', repo.username, repo.supplier_project_id.to_s, repo_name)
       FileUtils.mkdir_p(repo_path) unless File.directory?(repo_path)
       Dir.chdir(repo_path)
-      repo.update(clone_path: repo_path)
+      ActiveRecord::Base.connection_pool.with_connection do 
+        repo.update(clone_path: repo_path)
+      end
     end
 
     # switch to repo path provided
@@ -251,42 +259,44 @@ class MainController < ApplicationController
 
     def store_data(report_json, repo)
       set_status(repo, 4) {
-        # get rid of previous reviews
-        CodeReview.destroy_all(supplier_project_repo_id: repo.id)
-        data_hash = JSON.parse(report_json)
-        data_hash.each do |data|
-          begin_line = data['location']['lines'] ? data['location']['lines']['begin'] : data['location']['positions']['begin']['line']
-          end_line = data['location']['lines'] ? data['location']['lines']['end'] : data['location']['positions']['end']['line']
-          # insert code review
-          review = CodeReview.new(
-            :issue_type=>data['type'],
-            :check_name=>data['check_name'],
-            :description=>data['description'],
-            :engine_name=>data['engine_name'],
-            :file_path=>data['location']['path'],
-            :line_begin=>begin_line,
-            :line_end=>end_line,
-            :remediation_points=>data['remediation_points'] || nil,
-            :content=>data['content'] ? data['content']['body'] : nil,
-            :supplier_project_repo_id=>repo.id
-          )
-          review.save
-
-          # check for categories that exist
-          data['categories'].each do |cat|
-            code_category = CodeCategory.find_by name: cat
-            if !code_category then
-              code_category = CodeCategory.new(:name=>cat, :weight=>10)
-              code_category.save
-            end
-
-            # save reviews categories
-            code_review_category = CodeReviewCategory.new(
-              :name=>code_category.name,
-              :code_category_id=>code_category.id,
-              :code_review_id=>review.id
+        ActiveRecord::Base.connection_pool.with_connection do 
+          # get rid of previous reviews
+          CodeReview.destroy_all(supplier_project_repo_id: repo.id)
+          data_hash = JSON.parse(report_json)
+          data_hash.each do |data|
+            begin_line = data['location']['lines'] ? data['location']['lines']['begin'] : data['location']['positions']['begin']['line']
+            end_line = data['location']['lines'] ? data['location']['lines']['end'] : data['location']['positions']['end']['line']
+            # insert code review
+            review = CodeReview.new(
+              :issue_type=>data['type'],
+              :check_name=>data['check_name'],
+              :description=>data['description'],
+              :engine_name=>data['engine_name'],
+              :file_path=>data['location']['path'],
+              :line_begin=>begin_line,
+              :line_end=>end_line,
+              :remediation_points=>data['remediation_points'] || nil,
+              :content=>data['content'] ? data['content']['body'] : nil,
+              :supplier_project_repo_id=>repo.id
             )
-            code_review_category.save
+            review.save
+
+            # check for categories that exist
+            data['categories'].each do |cat|
+              code_category = CodeCategory.find_by name: cat
+              if !code_category then
+                code_category = CodeCategory.new(:name=>cat, :weight=>10)
+                code_category.save
+              end
+
+              # save reviews categories
+              code_review_category = CodeReviewCategory.new(
+                :name=>code_category.name,
+                :code_category_id=>code_category.id,
+                :code_review_id=>review.id
+              )
+              code_review_category.save
+            end
           end
         end
       }
@@ -350,9 +360,11 @@ class MainController < ApplicationController
       files.each do |file|
         f[file] = {'total_lines'=>0, 'lines_with_error'=>0, 'total_errors'=>0}
         f[file]['categories'] = {}
-        CodeCategory.find_each do |category|
-          f[file]['categories'] = f[file]['categories'].merge({category.name => {}})
-          f[file]['categories'][category.name] = f[file]['categories'][category.name].merge({'total_errors'=>0, 'lines_with_error'=>0, 'weight'=>category.weight})
+        ActiveRecord::Base.connection_pool.with_connection do 
+          CodeCategory.find_each do |category|
+            f[file]['categories'] = f[file]['categories'].merge({category.name => {}})
+            f[file]['categories'][category.name] = f[file]['categories'][category.name].merge({'total_errors'=>0, 'lines_with_error'=>0, 'weight'=>category.weight})
+          end
         end
       end
       return f
@@ -371,14 +383,16 @@ class MainController < ApplicationController
     end
 
     def count_errors(files, repo)
-      repo.code_review.each do |review|
-        if files.has_key?(review.file_path)
-          files[review.file_path]['total_errors'] += 1
-          error_lines = (review.line_end - review.line_begin) + 1
-          files[review.file_path]['lines_with_error'] += error_lines
-          review.code_category.each do |category|
-            files[review.file_path]['categories'][category.name]['total_errors'] += 1
-            files[review.file_path]['categories'][category.name]['lines_with_error'] += error_lines
+      ActiveRecord::Base.connection_pool.with_connection do 
+        repo.code_review.each do |review|
+          if files.has_key?(review.file_path)
+            files[review.file_path]['total_errors'] += 1
+            error_lines = (review.line_end - review.line_begin) + 1
+            files[review.file_path]['lines_with_error'] += error_lines
+            review.code_category.each do |category|
+              files[review.file_path]['categories'][category.name]['total_errors'] += 1
+              files[review.file_path]['categories'][category.name]['lines_with_error'] += error_lines
+            end
           end
         end
       end
@@ -402,8 +416,10 @@ class MainController < ApplicationController
 
     def grade_files files
       total_weight = 0
-      CodeCategory.find_each do |category|
-        total_weight += category.weight
+      ActiveRecord::Base.connection_pool.with_connection do 
+        CodeCategory.find_each do |category|
+          total_weight += category.weight
+        end
       end
       files.each do |f|
         grade = 0
@@ -430,8 +446,10 @@ class MainController < ApplicationController
 
     def get_category_issues files
       cat_issues = {}
-      CodeCategory.find_each do |category|
-        cat_issues = cat_issues.merge({category.name => {'count' => 0, 'id' => category.id}})
+      ActiveRecord::Base.connection_pool.with_connection do 
+        CodeCategory.find_each do |category|
+          cat_issues = cat_issues.merge({category.name => {'count' => 0, 'id' => category.id}})
+        end
       end
       files.each do |f|
         f[1]['categories'].each do |cat|
@@ -443,15 +461,17 @@ class MainController < ApplicationController
 
     def store_cat_issues(repo, cat_issues)
       cat_issues.each do |issue|
-        cat_stat = RepoCategoryStat.find_by supplier_project_repo_id: repo.id, code_category_id: issue[1]['id']
-        if !cat_stat
-          cat_stat = RepoCategoryStat.new
+        ActiveRecord::Base.connection_pool.with_connection do 
+          cat_stat = RepoCategoryStat.find_by supplier_project_repo_id: repo.id, code_category_id: issue[1]['id']
+          if !cat_stat
+            cat_stat = RepoCategoryStat.new
+          end
+          cat_stat.issues_count = issue[1]['count']
+          cat_stat.version = 1
+          cat_stat.supplier_project_repo_id = repo.id
+          cat_stat.code_category_id = issue[1]['id']
+          cat_stat.save
         end
-        cat_stat.issues_count = issue[1]['count']
-        cat_stat.version = 1
-        cat_stat.supplier_project_repo_id = repo.id
-        cat_stat.code_category_id = issue[1]['id']
-        cat_stat.save
       end
     end
 
@@ -479,9 +499,11 @@ class MainController < ApplicationController
     end
 
     def store_grades(repo, gpa, gpa_percent)
-      gpa_percent = gpa_percent.merge({'gpa'=>gpa})
-      gpa_percent = gpa_percent.to_json
-      repo.update(gpa: gpa_percent)
+      ActiveRecord::Base.connection_pool.with_connection do 
+        gpa_percent = gpa_percent.merge({'gpa'=>gpa})
+        gpa_percent = gpa_percent.to_json
+        repo.update(gpa: gpa_percent)
+      end
     end
 
 end
