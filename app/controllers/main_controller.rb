@@ -140,7 +140,9 @@ class MainController < ApplicationController
       calculate_results repo
       logger.debug "07 - Done calculating result - LOG"
     rescue => e
-      repo.update(clone_path: nil)
+      ActiveRecord::Base.connection_pool.with_connection do 
+        repo.update(clone_path: nil)
+      end
       FileUtils.rm_rf(Rails.root.join('storage', 'repos', repo.username, repo.supplier_project_id.to_s))
     end
 
