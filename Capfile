@@ -19,9 +19,9 @@ require 'capistrano/rvm'
 # require 'capistrano/rbenv'
 # require 'capistrano/chruby'
 require 'capistrano/bundler'
-require 'capistrano/rails'
-# require 'capistrano/rails/assets'
-# require 'capistrano/rails/migrations'
+# require 'capistrano/rails'
+require 'capistrano/rails/assets'
+require 'capistrano/rails/migrations'
 
 # If you are using rbenv add these lines:
 # set :rbenv_type, :user # or :system, depends on your rbenv setup

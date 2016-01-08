@@ -47,7 +47,7 @@ test:
 #   production:
 #     url: <%= ENV['DATABASE_URL'] %>
 
-production:
+staging:
   adapter: mysql2
   encoding: utf8
   host: <%= ENV['DATABASE_HOST'] %>
@@ -56,3 +56,12 @@ production:
   url: <%= ENV['DATABASE_URL'] %>
   username: <%= ENV['DATABASE_USER'] %>
   password: <%= ENV['DATABASE_PASS'] %>
+
+production:
+  adapter: mysql2
+  encoding: utf8
+  host: <%= ENV['DATABASE_HOST_PRODUCTION'] %>
+  port: <%= ENV['DATABASE_PORT_PRODUCTION'] %>
+  database: <%= ENV['DATABASE_NAME_PRODUCTION'] %>
+  username: <%= ENV['DATABASE_USER_PRODUCTION'] %>
+  password: <%= ENV['DATABASE_PASS_PRODUCTION'] %>

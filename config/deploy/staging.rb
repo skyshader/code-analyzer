@@ -1,7 +1,7 @@
-set :stage, :production
+set :stage, :staging
 
 # Default branch is :master
-set :branch, "master"
+set :branch, "staging"
 # ask :branch, proc { `git rev-parse --abbrev-ref HEAD`.chomp }
 
 # used in case we're deploying multiple versions of the same
