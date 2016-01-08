@@ -1,11 +1,8 @@
-# Include capistrano multistage for deployment
-require 'capistrano/ext/multistage'
-
 # Specify deploy environments
 set :stages, ["staging", "production"]
 set :default_stage, "staging"
 
-set :application, "code-analyzer"
+set :application, "analyzer"
 
 # Default value for :scm is :git
 set :scm, :git

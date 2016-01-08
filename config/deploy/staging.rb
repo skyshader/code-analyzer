@@ -12,4 +12,8 @@ set :full_app_name, "#{fetch(:application)}_#{fetch(:stage)}"
 # Default deploy_to directory is /var/www/my_app
 set :deploy_to, "/home/#{fetch(:deploy_user)}/apps/#{fetch(:full_app_name)}"
 
-server 'analyzer.venturepact.com', user: 'deploy', roles: %w{web app}
+server 'analyzertest.venturepact.com', user: 'deploy', roles: %w{web app}, primary: true
+
+# dont try and infer something as important as environment from
+# stage name.
+set :rails_env, :staging
