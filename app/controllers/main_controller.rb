@@ -2,6 +2,10 @@ class MainController < ApplicationController
   def index
 	end
 
+  def test
+    render :text => Rails.configuration.x.notify_url, :layout => true
+  end
+
   def repo
     repo_id = params[:repo_id]
     type = params[:analysis_type]
@@ -180,8 +184,10 @@ class MainController < ApplicationController
       ActiveRecord::Base.connection_pool.with_connection do 
         repo.update(analysis_status: 0, error_status: status, error_message: e.to_s)
       end
-      logger.debug "Exception at status " + status + " : " + e.backtrace.to_s
+      logger.debug "Exception at status " + status.to_s + " : " + e.backtrace.to_s
       raise
+    ensure
+      request_url(repo, status, caller_locations(2,2)[0].label)
     end
 
     # initial setup for clone path
@@ -511,6 +517,18 @@ class MainController < ApplicationController
         gpa_percent = gpa_percent.to_json
         repo.update(gpa: gpa_percent)
       end
+    end
+
+    def request_url(repo, status, call_type)
+      uri = URI.parse(Rails.configuration.x.notify_url)
+      http = Net::HTTP.new(uri.host, uri.port)
+
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request.set_form_data({"Analyzer[repo_id]" => repo.id, "Analyzer[status]" => status, "Analyzer[type]" => call_type})
+      response = http.request(request)
+      puts response.body.to_s
+    rescue => e
+      puts e.message
     end
 
 end
