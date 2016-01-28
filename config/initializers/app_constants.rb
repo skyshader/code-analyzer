@@ -14,7 +14,7 @@ end
 
 # Initializers for staging environment
 if Rails.env.staging?
-	Analyzer::Application.config.x.notify_url = 'http://example.com/staging'
+	Analyzer::Application.config.x.notify_url = 'http://dev1.venturepact.com/site/analyzerStatus'
 end
 
 # Initializers for production environment
