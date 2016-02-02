@@ -187,7 +187,8 @@ class MainController < ApplicationController
       logger.debug "Exception at status " + status.to_s + " : " + e.backtrace.to_s
       raise
     ensure
-      request_url(repo, status, caller_locations(2,2)[0].label)
+      # call to request url
+      # request_url(repo, status, caller_locations(2,2)[0].label)
     end
 
     # initial setup for clone path
