@@ -184,7 +184,7 @@ class MainController < ApplicationController
       ActiveRecord::Base.connection_pool.with_connection do 
         repo.update(analysis_status: 0, error_status: status, error_message: e.to_s)
       end
-      logger.debug "Exception at status " + status.to_s + " : " + e.backtrace.to_s
+      logger.debug "Exception at status " + status.to_s + " : " + e.message + " --- " + e.backtrace.to_s
       raise
     ensure
       # call to request url
@@ -453,6 +453,7 @@ class MainController < ApplicationController
       repo_grade = 0
       files.each do |f|
         file_grade = (f[1]['total_lines'] / total_lines.to_f) * f[1]['grade']
+        next if file_grade.nan?
         repo_grade += file_grade
       end
       return repo_grade.round(1)
@@ -494,17 +495,28 @@ class MainController < ApplicationController
       grade_count = {'A'=>0, 'B'=>0, 'C'=>0, 'D'=>0, 'F'=>0}
       files.each do |f|
         total_files += 1
-        if f[1]['grade'].between?(3.5, 4.0)
+        if f[1]['grade'] >= 3.5 and f[1]['grade'] <= 4.0
           grade_count['A'] += 1
-        elsif f[1]['grade'].between?(2.5, 3.5)
+        elsif f[1]['grade'] >= 2.5 and f[1]['grade'] < 3.5
           grade_count['B'] += 1
-        elsif f[1]['grade'].between?(1.5, 2.5)
+        elsif f[1]['grade'] >= 1.5 and f[1]['grade'] < 2.5
           grade_count['C'] += 1
-        elsif f[1]['grade'].between?(0.5, 1.5)
+        elsif f[1]['grade'] >= 0.5 and f[1]['grade'] < 1.5
           grade_count['D'] += 1
-        elsif f[1]['grade'].between?(0, 0.5)
-          grade_count['F'] += 1
+        elsif f[1]['grade'] >= 0 and f[1]['grade'] < 0.5
+            grade_count['F'] += 1
         end
+        # if f[1]['grade'].between?(3.5, 4.0)
+        #   grade_count['A'] += 1
+        # elsif f[1]['grade'].between?(2.5, 3.5)
+        #   grade_count['B'] += 1
+        # elsif f[1]['grade'].between?(1.5, 2.5)
+        #   grade_count['C'] += 1
+        # elsif f[1]['grade'].between?(0.5, 1.5)
+        #   grade_count['D'] += 1
+        # elsif f[1]['grade'].between?(0, 0.5)
+        #   grade_count['F'] += 1
+        # end
       end
       grade_count.each do |g|
         grade_count[g[0]] = ((g[1]/total_files.to_f) * 100).round(2)
