@@ -3,12 +3,26 @@ class MainController < ApplicationController
 	end
 
   def test
-    render :text => Rails.configuration.x.notify_url, :layout => true
+    repo = GitStats::GitData::Repo.new(path: ENV['HOME'] + '/Sites/code-analyzer-test', first_commit_sha: nil, last_commit_sha: 'HEAD')
+    @data  = repo.commits
+    # render json: repo.authors.to_json
+    # render :text => Rails.configuration.x.notify_url, :layout => true
   end
 
-  def repo
+  def repo_activity
     repo_id = params[:repo_id]
-    type = params[:analysis_type]
+    type = params[:type]
+    logger.debug "Going to generate " + type + " activity for " + repo_id.to_s
+    activity = Repository::Activity.new(repo_id, type)
+    activity.generate
+    logger.debug activity.to_s
+    render :text => 'Done processing', :layout => true
+    # render json: @status
+  end
+
+  def repo_analyze
+    repo_id = params[:repo_id]
+    type = params[:type]
     logger.debug "Going to start " + type + " analysis for " + repo_id.to_s
     @status = begin_analysis(repo_id, type)
     render json: @status

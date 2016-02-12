@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  email: MyString
+  additions: 1
+  deletions: 1
+  commits: 1
+  supplier_project_repos_id: 
+
+two:
+  name: MyString
+  email: MyString
+  additions: 1
+  deletions: 1
+  commits: 1
+  supplier_project_repos_id: 
