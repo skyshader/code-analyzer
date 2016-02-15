@@ -10,43 +10,66 @@ module Repository
 			end
 		end
 
+		def self.generate id, type
+			new(id, type).generate
+    rescue => e
+      msg = { :success => false, :message => "Failed to initiate. Please check if requested repository exists! " + e.to_s }
+		end
+
 		def generate
 			Thread.new do
 				if @type == 'full'
-	      	full_process @repo
-	      else
-	      	partial_process @repo
+	      	full_process
+	      elsif @type == 'refresh'
+	      	partial_process
 	      end
       end
+      msg = { :success => true, :message => "Please wait while we generate activity for the repository!" }
 		end
 
 		# private methods
 		private
-			def full_process repo
-				Repository::Config.setup_path repo
-				Repository::Git.clone(repo, 2, @type)
-				start_processing repo
-				Rails.logger.debug 'Done processing-----------------'
+			def full_process
+				Repository::Config.setup_path @repo
+				Repository::Git.clone(@repo, 2, @type)
+				Repository::Git.pull(@repo, 2, @type)
+				start_processing
+				Rails.logger.debug 'Done full processing-----------------'
 			rescue => e
 				Rails.logger.debug e.backtrace.to_s + " ----- " + e.to_s
 			end
 
-			def partial_process repo
-				Repository::Config.setup_path repo
-				Repository::Git.pull(repo, 2, @type)
-				start_processing repo
+			def partial_process
+				Repository::Config.setup_path @repo
+				Repository::Git.pull(@repo, 2, @type)
+				start_processing
+				Rails.logger.debug 'Done part processing-----------------'
 			rescue => e
 				Rails.logger.debug e.backtrace.to_s + " ----- " + e.to_s
 			end
 
-			def start_processing repo
-				last_commit = RepoCommit.where(supplier_project_repo_id: repo.id).order(:full_date).first
+			def start_processing
+				RepoContributor.store_contributors(@repo, git_stats.authors)
+				RepoCommit.store_commits(@repo, git_stats.commits)
+			end
+
+			def git_stats
+				@stats ||= GitStats::GitData::Repo.new(path: @repo.clone_path + "/" + @repo.current_branch, first_commit_sha: from_commit_sha, last_commit_sha: 'HEAD')
+			end
+
+			def from_commit_sha
 				from_sha = nil
+				last_commit = nil
+				ActiveRecord::Base.connection_pool.with_connection do 
+					last_commit = RepoCommit.where(supplier_project_repo_id: @repo.id).order(:full_date).first
+				end
 				from_sha = last_commit.sha if last_commit
-				stats = GitStats::GitData::Repo.new(path: repo.clone_path + "/" + repo.current_branch, first_commit_sha: from_sha, last_commit_sha: 'HEAD')
-				RepoContributor.store_contributors(repo, stats.authors)
-				RepoCommit.store_commits(repo, stats.commits)
 			end
+
+
+			# ----------------------------------------------
+			# Extra methods that may be used in future
+			# ----------------------------------------------
 
 			def day_stat stats
 				commits = stats.commits

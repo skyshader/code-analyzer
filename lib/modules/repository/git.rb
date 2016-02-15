@@ -1,6 +1,7 @@
 module Repository
 	class Git
 
+		# run clone command to get complete repo
 		def self.clone(repo, status, type)
 			Repository::Config.status(repo, status, type) {
 				# empty directory before clone
@@ -17,8 +18,6 @@ module Repository
 				if $? != 0 then
 				 raise "Failed to clone repository."
 				end
-				Dir.chdir(repo.current_branch)
-				# system("git checkout " repo.current_branch)
 			}
 		end
 

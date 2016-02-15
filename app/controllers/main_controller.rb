@@ -12,12 +12,15 @@ class MainController < ApplicationController
   def repo_activity
     repo_id = params[:repo_id]
     type = params[:type]
-    logger.debug "Going to generate " + type + " activity for " + repo_id.to_s
-    activity = Repository::Activity.new(repo_id, type)
-    activity.generate
-    logger.debug activity.to_s
-    render :text => 'Done processing', :layout => true
-    # render json: @status
+    @status = Repository::Activity.generate(repo_id, type)
+    render json: @status
+  end
+
+  def repo_analyze_new
+    repo_id = params[:repo_id]
+    type = params[:type]
+    @status = Repository::Analyzer.analyze(repo_id, type)
+    render json: @status
   end
 
   def repo_analyze
@@ -28,39 +31,19 @@ class MainController < ApplicationController
     render json: @status
   end
 
-  def process_key
-    username = params[:git_name]
+  def key_generate
+    username = params[:username]
     email = Base64.decode64(params[:email])
-    if email.empty? || username.empty?
-      @data = {'success'=>false, 'email'=>'Email/username not provided.'}
-    else
-      @data = generate_ssh(email, username)
-    end
-    puts @data.to_s
+    host = Base64.decode64(params[:host])
+    @data = Repository::SSHKey.generate(username, email, host)
     render json: @data
   rescue => e
     @data = {'success'=>false, 'message'=>e.to_s}
     render json: @data
   end
 
-  def activate_key
-    username = params[:git_name]
-    ssh_key_activate username
-    @data = {'success'=>true, 'msg'=>'SSH Key verified successfully!'}
-    render json: @data
-  end
-
-
   # start private methods
   private
-
-    # activate key by requesting github
-    def ssh_key_activate username
-      # ssh_cmd = "sh " + ENV['HOME'] + "/activate-ssh.sh " + username
-      # ssh_cmd = "ssh -T git@github.com-" + username
-      # logger.debug "SSH Command : " + ssh_cmd
-      # system(ssh_cmd)
-    end
 
     # generate ssh keys for accessing users private repo
     def generate_ssh(email, username)
