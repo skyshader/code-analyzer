@@ -58,6 +58,8 @@ module Repository
 			    f.puts("    User git")
 			    f.puts("    IdentityFile #{@ssh_file}")
 			    f.puts("    IdentitiesOnly yes")
+			    f.puts("    StrictHostKeyChecking no")
+			    f.puts("    UserKnownHostsFile=/dev/null")
 			    f.puts("")
 			  end
 			end
