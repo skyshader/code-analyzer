@@ -32,5 +32,9 @@ module Repository
 		  msg = { :success => true, :message => "Please wait while we process the repository!" }
 		end
 
+		# private methods
+		private
+
+
 	end
 end

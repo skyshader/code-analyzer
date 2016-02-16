@@ -22,6 +22,8 @@ module Repository
 	      	full_process
 	      elsif @type == 'refresh'
 	      	partial_process
+	      elsif @type == 'series'
+	      	just_process
 	      end
       end
       msg = { :success => true, :message => "Please wait while we generate activity for the repository!" }
@@ -46,6 +48,11 @@ module Repository
 				Rails.logger.debug 'Done part processing-----------------'
 			rescue => e
 				Rails.logger.debug e.backtrace.to_s + " ----- " + e.to_s
+			end
+
+			def just_process
+				start_processing
+				Rails.logger.debug 'Done just processing-----------------'
 			end
 
 			def start_processing

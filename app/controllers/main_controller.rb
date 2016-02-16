@@ -9,6 +9,12 @@ class MainController < ApplicationController
     # render :text => Rails.configuration.x.notify_url, :layout => true
   end
 
+  def repo_process
+    repo_id = params[:repo_id]
+    type = params[:type]
+    
+  end
+
   def repo_activity
     repo_id = params[:repo_id]
     type = params[:type]
@@ -44,70 +50,6 @@ class MainController < ApplicationController
 
   # start private methods
   private
-
-    # generate ssh keys for accessing users private repo
-    def generate_ssh(email, username)
-      ssh_file = ENV['HOME'] + '/.ssh/id_rsa_' + username
-      key_exist = ssh_key_exist ssh_file
-      if !key_exist
-        ssh_keygen(email, ssh_file)
-        ssh_modify_config(username, ssh_file)
-      end
-      public_key = ssh_public_key ssh_file
-      data = {'success'=>true, 'public_key'=>public_key, 'email'=>email}
-      return data
-    end
-
-    # check if ssh key already exist
-    def ssh_key_exist ssh_file
-      if File.file?(ssh_file)
-        return true
-      else
-        return false
-      end
-    end
-
-    # generate new ssh key
-    def ssh_keygen(email, ssh_file)
-      genssh_cmd = "ssh-keygen -t rsa -C '#{email}' -f '#{ssh_file}' -N ''"
-      system(genssh_cmd)
-      if $? != 0 then
-        raise 'Failed to generate ssh key.'
-      end
-      return ssh_file
-    end
-
-    # add details to ssh config
-    def ssh_modify_config(username, ssh_file)
-      config_path = verify_config
-      File.open(config_path, 'a') do |f|
-        f.puts("##{username} account")
-        f.puts("Host github.com-#{username}")
-        f.puts("    HostName github.com")
-        f.puts("    User git")
-        f.puts("    IdentityFile #{ssh_file}")
-        f.puts("    IdentitiesOnly yes")
-        f.puts("")
-      end
-    end
-
-    # if ssh config file does not exist, create one
-    def verify_config
-      config_path = ENV['HOME'] + '/.ssh/config'
-      if !File.file?(config_path)
-        create_config_cmd = "touch #{config_path}"
-        system(create_config_cmd)
-        if $? != 0 then
-          raise 'Failed to create config file.'
-        end
-      end
-      return config_path
-    end
-
-    # return public ssh key
-    def ssh_public_key ssh_file
-      return File.read(ssh_file + '.pub')
-    end
 
     # determine the type of analysis on the repo
     def begin_analysis(repo_id, type)
