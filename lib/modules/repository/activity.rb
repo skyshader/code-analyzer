@@ -3,17 +3,9 @@ module Repository
 
 		attr_reader :repo, :type
 		
-		def initialize id, type
+		def initialize repo, type
 			@type = type
-			ActiveRecord::Base.connection_pool.with_connection do 
-			  @repo = SupplierProjectRepo.find(id)
-			end
-		end
-
-		def self.generate id, type
-			new(id, type).generate
-    rescue => e
-      msg = { :success => false, :message => "Failed to initiate. Please check if requested repository exists! " + e.to_s }
+			@repo = repo
 		end
 
 		def generate
@@ -29,30 +21,34 @@ module Repository
       msg = { :success => true, :message => "Please wait while we generate activity for the repository!" }
 		end
 
-		# private methods
+		# ----------------------------------------------
+		# Private methods that are used to process repo
+		# ----------------------------------------------
 		private
 			def full_process
-				Repository::Config.setup_path @repo
-				Repository::Git.clone(@repo, 2, @type)
-				Repository::Git.pull(@repo, 2, @type)
+				Repository::Config.setup_repo @repo, @type
 				start_processing
-				Rails.logger.debug 'Done full processing-----------------'
+				Rails.logger.debug "Done full processing --------------"
 			rescue => e
 				Rails.logger.debug e.backtrace.to_s + " ----- " + e.to_s
+				raise
 			end
 
 			def partial_process
-				Repository::Config.setup_path @repo
-				Repository::Git.pull(@repo, 2, @type)
+				Repository::Config.setup_repo @repo, @type
 				start_processing
-				Rails.logger.debug 'Done part processing-----------------'
+				Rails.logger.debug "Done partial processing --------------"
 			rescue => e
 				Rails.logger.debug e.backtrace.to_s + " ----- " + e.to_s
+				raise
 			end
 
 			def just_process
 				start_processing
-				Rails.logger.debug 'Done just processing-----------------'
+				Rails.logger.debug "Done just processing activity --------------"
+			rescue => e
+				Rails.logger.debug e.backtrace.to_s + " ----- " + e.to_s
+				raise
 			end
 
 			def start_processing

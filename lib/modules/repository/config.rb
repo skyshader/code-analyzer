@@ -1,14 +1,24 @@
 module Repository
 	class Config
 
-		def self.status(repo, status, type)
+		attr_reader :repo, :type
+
+		def initialize repo, type
+			@repo, @type = repo, type
+		end
+
+		def self.setup_repo repo, type
+			new(repo, type).setup_repo
+		end
+
+		def status status
 		  yield
 		  ActiveRecord::Base.connection_pool.with_connection do 
-		    repo.update(analysis_status: status, error_status: nil, error_message: nil)
+		    @repo.update(analysis_status: status, error_status: nil, error_message: nil)
 		  end
 		rescue => e
 		  ActiveRecord::Base.connection_pool.with_connection do 
-		    repo.update(analysis_status: 0, error_status: status, error_message: e.to_s)
+		    @repo.update(analysis_status: 0, error_status: status, error_message: e.to_s)
 		  end
 		  Rails.logger.debug "Exception at status " + status.to_s + " : " + e.message + " --- " + e.backtrace.to_s
 		  raise
@@ -17,21 +27,33 @@ module Repository
 		  # request_url(repo, status, caller_locations(2,2)[0].label)
 		end
 
-		def self.setup_path repo
-			if !repo.clone_path.nil? and !repo.clone_path.empty?
-				Dir.chdir(repo.clone_path)
+		def setup_repo
+			status(2) {
+				setup_path
+				if @type == 'full'
+					Repository::Git.clone(@repo, @type)
+					Repository::Git.pull(@repo, @type)
+				elsif @type == 'refresh'
+					Repository::Git.pull(@repo, @type)
+				end
+			}
+		end
+
+		def setup_path
+			if !@repo.clone_path.nil? and !@repo.clone_path.empty?
+				Dir.chdir(@repo.clone_path)
 			else
-				self.initial_path_setup repo
+				initial_path_setup
 			end
 		end
 
-		def self.initial_path_setup repo
-		  repo_name = repo.repo_name.gsub(/[.]+/, '-') || repo.repo_name
-		  repo_path = Rails.root.join('storage', 'repos', repo.username, repo.supplier_project_id.to_s, repo_name)
+		def initial_path_setup
+		  repo_name = @repo.repo_name.gsub(/[.]+/, '-') || @repo.repo_name
+		  repo_path = Rails.root.join('storage', 'repos', @repo.username, @repo.supplier_project_id.to_s, repo_name)
 		  FileUtils.mkdir_p(repo_path) unless File.directory?(repo_path)
 		  Dir.chdir(repo_path)
 		  ActiveRecord::Base.connection_pool.with_connection do 
-		    repo.update(clone_path: repo_path)
+		    @repo.update(clone_path: repo_path)
 		  end
 		end
 	

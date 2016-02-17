@@ -12,20 +12,21 @@ class MainController < ApplicationController
   def repo_process
     repo_id = params[:repo_id]
     type = params[:type]
-    
+    @status = Repository::Process.series(repo_id, type)
+    render json: @status
   end
 
   def repo_activity
     repo_id = params[:repo_id]
     type = params[:type]
-    @status = Repository::Activity.generate(repo_id, type)
+    @status = Repository::Process.activity(repo_id, type)
     render json: @status
   end
 
   def repo_analyze_new
     repo_id = params[:repo_id]
     type = params[:type]
-    @status = Repository::Analyzer.analyze(repo_id, type)
+    @status = Repository::Process.analyze(repo_id, type)
     render json: @status
   end
 
