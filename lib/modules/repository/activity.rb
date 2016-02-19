@@ -1,32 +1,32 @@
 module Repository
 	class Activity
 
-		attr_reader :repo, :type
+		attr_reader :repo, :log, :process, :type
 		
 		def initialize repo, type
-			@type = type
-			@repo = repo
+			@repo, @process, @type = repo, 'activity', type
+			@log = RepoLog.create_log @repo, @process, @type
 		end
 
 		def generate
 			Thread.new do
-				if @type == 'full'
-	      	full_process
-	      elsif @type == 'refresh'
-	      	partial_process
-	      elsif @type == 'series'
-	      	just_process
-	      end
+	      process_repo
       end
       msg = { :success => true, :message => "Please wait while we generate activity for the repository!" }
 		end
+
+		def process
+			@type = 'full'
+			process_repo
+		end
+
 
 		# ----------------------------------------------
 		# Private methods that are used to process repo
 		# ----------------------------------------------
 		private
-			def full_process
-				Repository::Config.setup_repo @repo, @type
+			def process_repo
+				Repository::Config.setup_repo @repo, @log, @process, @type
 				start_processing
 				Rails.logger.debug "Done full processing --------------"
 			rescue => e
@@ -34,26 +34,11 @@ module Repository
 				raise
 			end
 
-			def partial_process
-				Repository::Config.setup_repo @repo, @type
-				start_processing
-				Rails.logger.debug "Done partial processing --------------"
-			rescue => e
-				Rails.logger.debug e.backtrace.to_s + " ----- " + e.to_s
-				raise
-			end
-
-			def just_process
-				start_processing
-				Rails.logger.debug "Done just processing activity --------------"
-			rescue => e
-				Rails.logger.debug e.backtrace.to_s + " ----- " + e.to_s
-				raise
-			end
-
 			def start_processing
-				RepoContributor.store_contributors(@repo, git_stats.authors)
-				RepoCommit.store_commits(@repo, git_stats.commits)
+				Repository::Config.new(@repo, @log, @process, @type).status(3) {
+					RepoContributor.store_contributors(@repo, git_stats.authors)
+					RepoCommit.store_commits(@repo, git_stats.commits)
+				}
 			end
 
 			def git_stats

@@ -9,10 +9,7 @@ class CreateSupplierProjectRepos < ActiveRecord::Migration
       t.string :default_branch
       t.string :current_branch
       t.string :gpa
-      t.integer :analysis_status
       t.integer :status
-      t.integer :is_error
-      t.integer :error_status
       t.text :error_message
 
       t.timestamps null: false

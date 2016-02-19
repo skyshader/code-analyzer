@@ -1,10 +1,11 @@
 module Repository
 	class Analyzer
 
-		attr_reader :repo, :type
+		attr_reader :repo, :log, :process, :type
 		
 		def initialize repo, type
-			@type, @status, @repo = type, 0, repo
+			@repo, @process, @type = repo, 'analyzer', type
+			@log = RepoLog.create_log repo, @process, type
 		end
 
 		def analyze
@@ -18,11 +19,14 @@ module Repository
 		      full_analysis
 		    elsif @type == 'refresh'
 		      refresh_analysis
-		    elsif @type == 'series'
-		    	just_analysis
 		    end
 		  end
 		  msg = { :success => true, :message => "Please wait while we process the repository!" }
+		end
+
+		def process
+			@type = 'refresh'
+			full_analysis
 		end
 
 		# private methods
@@ -30,7 +34,7 @@ module Repository
 
 			# perform full analysis of the repo
 			def full_analysis
-			  Repository::Config.setup_repo @repo, @type
+			  Repository::Config.setup_repo @repo, @log, @process, @type
 			  Rails.logger.debug "01 - Done setting up initial path - LOG"
 			  init_repo
 			  Rails.logger.debug "02 - Done initializing codeclimat config - LOG"
@@ -53,7 +57,7 @@ module Repository
 
 			# refresh the analysis for repo
 			def refresh_analysis
-			  Repository::Config.setup_repo @repo, @type
+			  Repository::Config.setup_repo @repo, @log, @process, @type
 			  Rails.logger.debug "01 - Done switching up initial path - LOG"
 			  report_json = analyze_repo
 			  Rails.logger.debug "02 - Done analyzing repository - LOG"
@@ -61,26 +65,14 @@ module Repository
 			  Rails.logger.debug "03 - Done storing data - LOG"
 			  calculate_results
 			  Rails.logger.debug "04 - Done calculating results - LOG"
-			rescue
-			  raise
-			end
-
-			# just the analysis for repo
-			def just_analysis
-				Repository::Config.setup_repo @repo, 'refresh'
-			  report_json = analyze_repo
-			  Rails.logger.debug "01 - Done analyzing repository - LOG"
-			  store_data report_json
-			  Rails.logger.debug "02 - Done storing data - LOG"
-			  calculate_results
-			  Rails.logger.debug "03 - Done calculating results - LOG"
-			rescue
+			rescue => e
+				Rails.logger.debug e.backtrace.to_s + " ----- " + e.to_s
 			  raise
 			end
 
 			# initialize analysis config files
 			def init_repo
-			  Repository::Config.new(@repo, @type).status(3) {
+			  Repository::Config.new(@repo, @log, @process, @type).status(3) {
 			    init_cmd = 'codeclimate init'
 			    init_result = `#{init_cmd}`
 			  }
@@ -95,7 +87,7 @@ module Repository
 
 			# begin analysis
 			def analyze_repo
-				Repository::Config.new(@repo, @type).status(3) {
+				Repository::Config.new(@repo, @log, @process, @type).status(3) {
 					analyze_cmd = 'codeclimate analyze -f json'
 					Rails.logger.debug "Running analysis command : " + analyze_cmd
 					report_json = `#{analyze_cmd}`
@@ -105,7 +97,7 @@ module Repository
 			end
 
 			def store_data report_json
-			  Repository::Config.new(@repo, @type).status(4) {
+			  Repository::Config.new(@repo, @log, @process, @type).status(4) {
 			    ActiveRecord::Base.connection_pool.with_connection do 
 			      # get rid of previous reviews
 			      CodeReview.destroy_all(supplier_project_repo_id: @repo.id)
@@ -150,7 +142,7 @@ module Repository
 			end
 
 			def calculate_results
-			  Repository::Config.new(@repo, @type).status(5) {
+			  Repository::Config.new(@repo, @log, @process, @type).status(5) {
 			    files = files_to_analyze
 			    puts '-----Files to analyze done (Step 1)'
 			    files = prepare_files_to_rate files
@@ -231,7 +223,7 @@ module Repository
 
 			def count_errors files
 			  ActiveRecord::Base.connection_pool.with_connection do 
-			    @repo.code_review.each do |review|
+			    @repo.code_reviews.each do |review|
 			      if files.has_key?(review.file_path)
 			        files[review.file_path]['total_errors'] += 1
 			        error_lines = (review.line_end - review.line_begin) + 1

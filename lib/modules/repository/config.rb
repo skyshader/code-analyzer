@@ -1,24 +1,24 @@
 module Repository
 	class Config
 
-		attr_reader :repo, :type
+		attr_reader :repo, :log, :process, :type
 
-		def initialize repo, type
-			@repo, @type = repo, type
+		def initialize repo, log, process, type
+			@repo, @log, @process, @type = repo, log, process, type
 		end
 
-		def self.setup_repo repo, type
-			new(repo, type).setup_repo
+		def self.setup_repo repo, log, process, type
+			new(repo, log, process, type).setup_repo
 		end
 
 		def status status
 		  yield
 		  ActiveRecord::Base.connection_pool.with_connection do 
-		    @repo.update(analysis_status: status, error_status: nil, error_message: nil)
+		    @log.update(success_status: status, is_error: 0, 	error_status: nil, error_message: nil)
 		  end
 		rescue => e
 		  ActiveRecord::Base.connection_pool.with_connection do 
-		    @repo.update(analysis_status: 0, error_status: status, error_message: e.to_s)
+		    @log.update(success_status: 0, is_error: 1, error_status: status, error_message: e.to_s)
 		  end
 		  Rails.logger.debug "Exception at status " + status.to_s + " : " + e.message + " --- " + e.backtrace.to_s
 		  raise

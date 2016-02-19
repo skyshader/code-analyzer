@@ -24,6 +24,8 @@ module Repository
 
 		def self.series id, type
 			new(id, type).series
+		rescue => e
+      msg = { :success => false, :message => "Failed to initiate. Please check if requested repository exists! " + e.to_s }
 		end
 
 		def get_analyzer
@@ -35,9 +37,17 @@ module Repository
 		end
 
 		def series
-			Repository::Config.setup_repo @repo, @type
-			get_activity.generate
-			get_analyzer.analyze
+			Thread.new do
+				begin
+					get_activity.process
+					get_analyzer.process
+				rescue => e
+					Rails.logger.debug e.backtrace.to_s + " ----- " + e.to_s
+				ensure
+					# do something
+				end
+			end
+			msg = { :success => true, :message => "Please wait while we process the repository!" }
 		end
 
 	end
