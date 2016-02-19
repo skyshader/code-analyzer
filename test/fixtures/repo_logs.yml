@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  process_type: MyString
+  request_type: MyString
+  success_status: 1
+  error_status: 1
+  error_message: MyText
+
+two:
+  process_type: MyString
+  request_type: MyString
+  success_status: 1
+  error_status: 1
+  error_message: MyText
