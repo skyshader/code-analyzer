@@ -96,6 +96,7 @@ module Repository
 				}
 			end
 
+			# store the json result as per needed
 			def store_data report_json
 			  Repository::Config.new(@repo, @log, @process, @type).status(4) {
 			    ActiveRecord::Base.connection_pool.with_connection do 
@@ -141,6 +142,7 @@ module Repository
 			  }
 			end
 
+			# calculate results based on analysis
 			def calculate_results
 			  Repository::Config.new(@repo, @log, @process, @type).status(5) {
 			    files = files_to_analyze

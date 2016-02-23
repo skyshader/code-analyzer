@@ -39,8 +39,10 @@ module Repository
 		def series
 			Thread.new do
 				begin
-					get_activity.process
-					get_analyzer.process
+					activity = get_activity
+					analyzer = get_analyzer
+					activity.process
+					analyzer.process
 				rescue => e
 					Rails.logger.debug e.backtrace.to_s + " ----- " + e.to_s
 				ensure
