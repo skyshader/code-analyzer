@@ -4,8 +4,6 @@ class MainController < ApplicationController
 
   # for testing purposes
   def test
-    repo = GitStats::GitData::Repo.new(path: ENV['HOME'] + '/Sites/code-analyzer-test', first_commit_sha: nil, last_commit_sha: 'HEAD')
-    @data  = repo.commits
     # render json: repo.authors.to_json
     # render :text => Rails.configuration.x.notify_url, :layout => true
     render :text => "Get away, dude!", :layout => true
