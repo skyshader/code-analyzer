@@ -1,6 +1,6 @@
 class MainController < ApplicationController
   def index
-	end
+  end
 
   # for testing purposes
   def test
