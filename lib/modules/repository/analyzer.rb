@@ -3,14 +3,18 @@ module Repository
 
 		attr_reader :repo, :log, :process, :type
 		
+		# initialize object with defaults and a log to keep track of status
 		def initialize repo, type
 			@repo, @process, @type = repo, 'analyzer', type
 			@log = RepoLog.create_log repo, @process, type
 		end
 
+
+		# start analyzer
 		def analyze
 			status = begin_analysis
 		end
+
 
 		# determine the type of analysis on the repo
 		def begin_analysis
@@ -24,10 +28,13 @@ module Repository
 		  msg = { :success => true, :message => "Please wait while we process the repository!" }
 		end
 
+
+		# needs to generate activity and analysis in series
 		def process
 			@type = 'refresh'
 			full_analysis
 		end
+
 
 		# private methods
 		private
@@ -55,6 +62,7 @@ module Repository
 			  end
 			end
 
+
 			# refresh the analysis for repo
 			def refresh_analysis
 			  Repository::Config.setup_repo @repo, @log, @process, @type
@@ -70,6 +78,7 @@ module Repository
 			  raise
 			end
 
+
 			# initialize analysis config files
 			def init_repo
 			  Repository::Config.new(@repo, @log, @process, @type).status(3) {
@@ -78,12 +87,14 @@ module Repository
 			  }
 			end
 
+
 			# exclude unnecessary files
 			def exclude_files
 			  config = YAML.load_file('.codeclimate.yml')
 			  config["exclude_paths"] |= [".git/**/*", ".*", "**.md", "**.json", "**.yml", "**.log", "lib/**/*", "bin/**/*", "log/**/*", "vendor/**/*", "tmp/**/*", "assets/**/*", "test/**/*", "uploads/**/*", "img/**/*", "images/**/*", "fonts/**/*"]
 			  File.open('.codeclimate.yml', 'w') {|f| f.write config.to_yaml }
 			end
+
 
 			# begin analysis
 			def analyze_repo
@@ -95,6 +106,7 @@ module Repository
 					return report_json
 				}
 			end
+
 
 			# store the json result as per needed
 			def store_data report_json
@@ -142,6 +154,7 @@ module Repository
 			  }
 			end
 
+
 			# calculate results based on analysis
 			def calculate_results
 			  Repository::Config.new(@repo, @log, @process, @type).status(5) {
@@ -170,6 +183,8 @@ module Repository
 			  }
 			end
 
+
+			# list files to be rated
 			def files_to_analyze
 			  require 'find'
 			  ignore_dirs = ['.git','bin','test','assets','lib','log','vendor','tmp','img', 'images', 'uploads', 'fonts']
@@ -196,6 +211,8 @@ module Repository
 			  return final_files
 			end
 
+
+			# construct a hash to store data for each file
 			def prepare_files_to_rate files
 			  f = {}
 			  files.each do |file|
@@ -211,6 +228,8 @@ module Repository
 			  return f
 			end
 
+
+			# count total lines for each file
 			def count_total_lines files
 			  files.each do |f, k|
 			    lines_output = `wc -l #{f.to_s}`
@@ -223,6 +242,8 @@ module Repository
 			  return files
 			end
 
+
+			# count total issues in each file
 			def count_errors files
 			  ActiveRecord::Base.connection_pool.with_connection do 
 			    @repo.code_reviews.each do |review|
@@ -240,6 +261,8 @@ module Repository
 			  return files
 			end
 
+
+			# generate grades for each categories of issue that exist in a file
 			def grade_categories files
 			  files.each do |f|
 			    f[1]['categories'].each do |cat|
@@ -255,6 +278,8 @@ module Repository
 			  return files
 			end
 
+
+			# grade files on the basis of weights given to each category
 			def grade_files files
 			  total_weight = 0
 			  ActiveRecord::Base.connection_pool.with_connection do 
@@ -272,6 +297,8 @@ module Repository
 			  return files
 			end
 
+
+			# generate overall grade for the repository wrt LOC
 			def grade_repo files
 			  total_lines = 0
 			  files.each do |f|
@@ -286,6 +313,8 @@ module Repository
 			  return repo_grade.round(1)
 			end
 
+
+			# get issues count for each categories
 			def get_category_issues files
 			  cat_issues = {}
 			  ActiveRecord::Base.connection_pool.with_connection do 
@@ -301,6 +330,8 @@ module Repository
 			  return cat_issues
 			end
 
+
+			# store issues count for each categories
 			def store_cat_issues cat_issues
 			  cat_issues.each do |issue|
 			    ActiveRecord::Base.connection_pool.with_connection do 
@@ -317,6 +348,8 @@ module Repository
 			  end
 			end
 
+
+			# convert grades to GPA
 			def get_overall_grades files
 			  total_files = 0
 			  grade_count = {'A'=>0, 'B'=>0, 'C'=>0, 'D'=>0, 'F'=>0}
@@ -339,7 +372,9 @@ module Repository
 			  end
 			  return grade_count
 			end
+			
 
+			# store grades for repository
 			def store_grades gpa, gpa_percent
 			  ActiveRecord::Base.connection_pool.with_connection do 
 			    gpa_percent = gpa_percent.merge({'gpa'=>gpa})

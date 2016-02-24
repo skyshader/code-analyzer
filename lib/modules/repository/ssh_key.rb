@@ -3,17 +3,20 @@ module Repository
 
 		attr_reader :username, :email, :host, :ssh_file
 		
+		# initialize with basic configuration
 		def initialize username, email, host
 			@username, @email, @host = username, email, host
 			@ssh_file = ENV['HOME'] + "/.ssh/id_rsa_" + @username.to_s
 		end
 
+		# start ssh generation and return result
 		def self.generate username, email, host
 			ssh_generator = new(username, email, host)
 			data = ssh_generator.initiate
 			return data
 		end
 
+		# basic checks before generate
 		def initiate
 			if !@email.empty? && !@username.empty? && !@host.empty?
 				return generate_ssh
@@ -24,7 +27,12 @@ module Repository
 			return_error_json e
 		end
 
+		# ----------------------------------------------
+		# Private methods that are used to generate ssh
+		# ----------------------------------------------
 		private
+
+			# handle ssh generation
 			def generate_ssh
 				if !does_key_exists?
 				  ssh_keygen
@@ -39,6 +47,7 @@ module Repository
 				}
 			end
 
+
 			# generate new ssh key
 			def ssh_keygen
 			  ssh_cmd = "ssh-keygen -t rsa -C '#{@email}' -f '#{@ssh_file}' -N ''"
@@ -47,6 +56,7 @@ module Repository
 			    raise 'There was an error in generating ssh key.'
 			  end
 			end
+
 
 			# add details to ssh config
 			def ssh_config
@@ -64,6 +74,7 @@ module Repository
 			  end
 			end
 
+
 			# if ssh config file does not exist, create one
 			def get_config_file
 			  config_file = ENV['HOME'] + '/.ssh/config'
@@ -77,14 +88,20 @@ module Repository
 			  config_file
 			end
 
+
+			# check if ssh already exists
 			def does_key_exists?
 				File.file?(@ssh_file)
 			end
 
+
+			# return public key
 			def get_public_key
 				File.read(@ssh_file + '.pub')
 			end
+			
 
+			# generate error json
 			def return_error_json e
 				puts e.backtrace.to_s + " --------> " + e.message
 				return {

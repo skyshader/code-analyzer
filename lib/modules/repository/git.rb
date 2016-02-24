@@ -12,12 +12,14 @@ module Repository
 			if repo.is_private === 1
 			 clone_url = clone_url.insert(clone_url.index(':'), "-" + repo.username)
 			end
+
 			clone_cmd = "git clone " + clone_url + " " + repo.current_branch
 			system(clone_cmd)
 			if $? != 0 then
 			 raise "Failed to clone repository."
 			end
 		end
+		
 
 		# run pull command to get fresh repo
 		def self.pull(repo, type)
