@@ -1,11 +1,4 @@
-<% @data.each do |d| %>
-	SHA: <%= d.sha %>
-	Stamp: <%= d.stamp %>
-	Date: <%= d.date.utc.to_date %>
-	Date: <%= d.date.utc %>
-	Author: <%= d.author.email %>
-	Insertions: <%= d.short_stat.insertions %>
-	Deletions: <%= d.short_stat.deletions %>
-	Files changed: <%= d.short_stat.files_changed %>
+<% @files_list.each do |file| %>
+	<%= file %>
 	<br/><br/>
 <% end %>

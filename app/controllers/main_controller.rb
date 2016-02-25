@@ -4,9 +4,49 @@ class MainController < ApplicationController
 
   # for testing purposes
   def test
+    require 'find'
+    @files_list = []
+    ignore_dirs = ['.git']
+    ignore_files = Regexp.union(/^\..*$/i, /^.*(.md)$/i)
+    accepted_ext = ['.php']
+    Find.find('/home/shaan/Sites/magento2/') do |path|
+      path_name = File.basename(path)
+      ext_name = File.extname(path_name)
+      file_size = File.size(path)
+      if FileTest.directory?(path)
+        if ignore_dirs.include?(path_name)
+          Find.prune
+        else
+          # @files_list << {'path'=>path, 'is_directory'=>1}
+        end
+      else
+        if path_name.match(ignore_files) or !accepted_ext.include?(ext_name)
+          next
+        else
+          @files_list << {'path'=>path, 'is_file'=>1, 'ext'=>ext_name, 'size'=>file_size}
+        end
+      end
+      # break if @files_list.size > 800
+
+    end
+
+    # @files_list.sort! { |x, y| x["size"] <=> y["size"] }
+    Thread.new do
+      begin
+        batches = batch_files @files_list
+        phpmd batches
+      rescue => e
+        puts e.message + " ------ " + e.backtrace.to_s
+      ensure
+        puts 'Done processing batches'
+      end
+    end
+    # files.each_slice(size).to_a.each do |batch|
+
+    # result = phpmd @files_list
     # render json: repo.authors.to_json
     # render :text => Rails.configuration.x.notify_url, :layout => true
-    render :text => "Get away, dude!", :layout => true
+    render :text => "Processing batches!", :layout => true
   end
 
   # generate activity + analyze -> in series
@@ -47,6 +87,50 @@ class MainController < ApplicationController
 
   # start private methods
   private
+
+    def total_lines file
+      line = `wc -l #{file.to_s}`
+      line.strip.split(' ')[0].to_i
+    end
+
+    def batch_files files
+      batched = []
+      current_batch_index = 0
+      current_batch_size = 0
+      max_batch_size = 100000
+      files.each do |file|
+        if file['size'] <= 0
+          next
+        elsif file['size'] >= (max_batch_size - current_batch_size)
+          current_batch_index += 1 if !batched[current_batch_index].nil?
+          batched[current_batch_index] ||= []
+          batched[current_batch_index] << file
+          puts current_batch_size.to_s + " <- Current size at index " + current_batch_index.to_s
+          current_batch_size = file['size']
+        elsif file['size'] < (max_batch_size - current_batch_size)
+          batched[current_batch_index] ||= []
+          batched[current_batch_index] << file
+          current_batch_size += file['size']
+        end
+      end
+      return batched
+    end
+
+    def phpmd batches
+      batches.each do |batch|
+        file_list = ""
+        batch.each do |file|
+          file_list += file['path'] + ","
+        end
+        file_list.chomp!(',')
+
+        puts "Processing batch for " + file_list
+
+        cmd = "phpmd " + file_list + " xml unusedcode,codesize,naming,cleancode,controversial,design"
+        result = `#{cmd}`
+        puts result
+      end
+    end
 
     # not used yet
     def request_url(repo, status, call_type)
