@@ -39,10 +39,8 @@ module Repository
         setup_path
         if @type == 'full'
           Repository::Git.clone(@repo, @type)
-          Repository::Git.pull(@repo, @type)
-        elsif @type == 'refresh'
-          Repository::Git.pull(@repo, @type)
         end
+        Repository::Git.pull(@repo, @type)
       }
     end
     

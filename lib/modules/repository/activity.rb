@@ -66,31 +66,6 @@ module Repository
         end
         from_sha = last_commit.sha if last_commit
       end
-
-
-      # ----------------------------------------------
-      # Extra methods that may be used in future
-      # ----------------------------------------------
-
-      def day_stat stats
-        commits = stats.commits
-        data_per_day = commits.inject({}) do |h, commit|
-          dt = commit.date.utc.to_date.to_s
-          if h.key?(dt)
-            h[dt]['additions'] += commit.short_stat.insertions
-            h[dt]['deletions'] += commit.short_stat.deletions
-            h[dt]['files_changed'] += commit.short_stat.files_changed
-            h[dt]['commits'] += 1
-          else
-            h[dt] = {}
-            h[dt]['additions'] = commit.short_stat.insertions
-            h[dt]['deletions'] = commit.short_stat.deletions
-            h[dt]['files_changed'] = commit.short_stat.files_changed
-            h[dt]['commits'] = 1
-          end
-          h
-        end
-      end
   
   end
 end
