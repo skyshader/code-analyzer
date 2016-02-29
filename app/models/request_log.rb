@@ -1,5 +1,6 @@
-class RepoLog < ActiveRecord::Base
-	belongs_to :supplier_project_repos
+class RequestLog < ActiveRecord::Base
+	
+	belongs_to :branch
 
 	def self.create_log repo, process, type
 		ActiveRecord::Base.connection_pool.with_connection do 

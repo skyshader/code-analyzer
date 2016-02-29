@@ -17,37 +17,58 @@ class MainController < ApplicationController
         if ignore_dirs.include?(path_name)
           Find.prune
         else
-          # @files_list << {'path'=>path, 'is_directory'=>1}
+          @files_list << {'path'=>path, 'is_directory'=>1}
         end
       else
         if path_name.match(ignore_files) or !accepted_ext.include?(ext_name)
           next
         else
-          @files_list << {'path'=>path, 'is_file'=>1, 'ext'=>ext_name, 'size'=>file_size}
+          hash = Digest::SHA256.file(path).hexdigest
+          @files_list << {'path'=>path, 'is_file'=>1, 'ext'=>ext_name, 'size'=>file_size, 'hash'=>hash}
         end
       end
-      # break if @files_list.size > 800
+      break if @files_list.size > 100
 
     end
 
     # @files_list.sort! { |x, y| x["size"] <=> y["size"] }
-    Thread.new do
-      begin
-        batches = batch_files @files_list
-        phpmd batches
-      rescue => e
-        puts e.message + " ------ " + e.backtrace.to_s
-      ensure
-        puts 'Done processing batches'
-      end
-    end
+    # Thread.new do
+    #   begin
+    #     batches = batch_files @files_list
+    #     phpmd batches
+    #   rescue => e
+    #     puts e.message + " ------ " + e.backtrace.to_s
+    #   ensure
+    #     puts 'Done processing batches'
+    #   end
+    # end
     # files.each_slice(size).to_a.each do |batch|
 
     # result = phpmd @files_list
     # render json: repo.authors.to_json
     # render :text => Rails.configuration.x.notify_url, :layout => true
-    render :text => "Processing batches!", :layout => true
+    # render :text => "Processing batches!", :layout => true
   end
+
+
+  # setup repository, create essential entries and configuration
+  def setup
+    data = JSON.parse(params[:repository].to_json)
+    ActiveRecord::Base.connection_pool.with_connection do
+      Repository.transaction do
+        @repository = Repository.create_repository data
+        @branch = Branch.create_branch @repository
+      end
+    end
+    
+    @status = Bootstrap::Setup.new(
+      repository: @repository,
+      branch: @branch
+    ).configure
+
+    render json: @status
+  end
+
 
   # generate activity + analyze -> in series
   def repo_process
@@ -57,6 +78,7 @@ class MainController < ApplicationController
     render json: @status
   end
 
+
   # for generating activity data
   def repo_activity
     repo_id = params[:repo_id]
@@ -65,6 +87,7 @@ class MainController < ApplicationController
     render json: @status
   end
 
+
   # for generating analysis reports
   def repo_analyze
     repo_id = params[:repo_id]
@@ -72,6 +95,7 @@ class MainController < ApplicationController
     @status = Repository::Process.analyze(repo_id, type)
     render json: @status
   end
+
 
   # for adding ssh keys to access private repos
   def key_generate

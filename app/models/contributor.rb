@@ -1,8 +1,10 @@
-class RepoContributor < ActiveRecord::Base
-  belongs_to :supplier_project_repos
-  has_many :repo_commits
+class Contributor < ActiveRecord::Base
 
-  def self.store_contributors(repo, contributors)
+  belongs_to :repository
+  
+  has_many :commits
+
+  def self.store_contributors(branch, contributors)
     contributors_data = []
   	contributors.each do |contributor|
   		total_commits = 0 
@@ -11,16 +13,16 @@ class RepoContributor < ActiveRecord::Base
   			total_commits += c
   		end
 
-      existing_contributor = RepoContributor.find_by(supplier_project_repo_id: repo.id, email: contributor.email)
+      existing_contributor = Contributor.find_by(branch_id: branch.id, email: contributor.email)
 
       if !existing_contributor
-        contributors_data.push({ 
+        contributors_data.push({
           :name => contributor.name,
           :email => contributor.email,
           :additions => contributor.insertions,
           :deletions => contributor.deletions,
           :commits => total_commits,
-          :supplier_project_repo_id => repo.id
+          :branch_id => branch.id
         })
       else
         ActiveRecord::Base.connection_pool.with_connection do 
@@ -34,7 +36,7 @@ class RepoContributor < ActiveRecord::Base
   	end
     Rails.logger.debug contributors_data.to_s
     ActiveRecord::Base.connection_pool.with_connection do 
-      RepoContributor.create(contributors_data)
+      Contributor.create(contributors_data)
     end
   end
 end

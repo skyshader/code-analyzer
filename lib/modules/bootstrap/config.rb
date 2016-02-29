@@ -1,26 +1,30 @@
-module Repository
+module Bootstrap
+
+  ConfigFailureError = Class.new(StandardError)
+
   class Config
 
-    attr_reader :repo, :log, :process, :type
+    attr_reader :repository, :branch, :directory
 
     # initialize new config with required objects
-    def initialize repo, log, process, type
-      @repo, @log, @process, @type = repo, log, process, type
-    end
-
-
-    # transfer request to object for setting up repo
-    def self.setup_repo repo, log, process, type
-      new(repo, log, process, type).setup_repo
+    def initialize(repository:, branch:, directory:)
+      @repository = repository
+      @branch = branch
+      @directory = directory
     end
 
     # new method for updating status
-    def set_status status
+    def set_setup_status
       begin
         yield
         # more code
+        ActiveRecord::Base.connection_pool.with_connection do
+          @branch.update(:is_setup => 1)
+        end
       rescue => e
         # handle exception
+        Rails.logger.debug "Exception ---------------------" + e.message + " >>> " + e.backtrace.to_s
+        @branch.update(:is_setup => 0)
       ensure
         # respond back with status
         # Config.new(repository).request_url
@@ -56,28 +60,18 @@ module Repository
         Repository::Git.pull(@repo, @type)
       }
     end
-    
-
-    # basic path setup for repository
-    def setup_path
-      if !@repo.clone_path.nil? and !@repo.clone_path.empty?
-        Dir.chdir(@repo.clone_path)
-      else
-        initial_path_setup
-      end
-    end
 
 
     # for initial path setup create directories as needed
-    def initial_path_setup
-      repo_name = @repo.repo_name.gsub(/[.]+/, '-') || @repo.repo_name
-      repo_path = Rails.root.join('storage', 'repos', @repo.username, @repo.supplier_project_id.to_s, repo_name)
-      FileUtils.mkdir_p(repo_path) unless File.directory?(repo_path)
-      Dir.chdir(repo_path)
-      ActiveRecord::Base.connection_pool.with_connection do 
-        @repo.update(clone_path: repo_path)
+    def path_setup
+      FileUtils.mkdir_p(@directory) unless File.directory?(@directory)
+      ActiveRecord::Base.connection_pool.with_connection do
+        @repository.update(directory: @directory)
       end
+    rescue => e
+      raise ConfigFailureError, "Failed to setup initial path " + e.message
     end
+
 
     def request_url
       uri = URI.parse(Rails.configuration.x.notify_url)

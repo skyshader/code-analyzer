@@ -1,12 +1,13 @@
-class RepoCommit < ActiveRecord::Base
-  belongs_to :repo_contributors
+class Commit < ActiveRecord::Base
+
+  belongs_to :contributor
 
   def self.store_commits(repo, commits)
   	commits_data = []
   	commits.each do |commit|
-  		contributor = RepoContributor.find_by_email(commit.author.email)
+  		contributor = Contributor.find_by_email(commit.author.email)
   		if !contributor.nil?
-  			existing_commit = RepoCommit.find_by(supplier_project_repo_id: repo.id, sha: commit.sha)
+  			existing_commit = Commit.find_by(brnach_id: repo.id, sha: commit.sha)
   			if !existing_commit
 	  			commits_data.push({
 	  				:sha => commit.sha,
@@ -22,6 +23,6 @@ class RepoCommit < ActiveRecord::Base
   		end
   	end
   	Rails.logger.debug commits_data.to_s
-  	RepoCommit.create(commits_data)
+  	Commit.create(commits_data)
   end
 end
