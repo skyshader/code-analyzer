@@ -2,13 +2,16 @@ class CreateFileLists < ActiveRecord::Migration
   def up
     create_table :file_lists do |t|
       t.string :name
-      t.text :path
-      t.string :extension
       t.integer :is_file
-      t.integer :is_excluded, default: 0
-      t.integer :parent, default: 0
-      t.string :fhash
+      t.string :extension
+      t.string :file_size
       t.string :phash
+      t.string :fhash
+      t.string :relative_path
+      t.string :parent_path
+      t.text :full_path
+      t.integer :is_excluded, default: 0
+      t.integer :status, default: 1
 
       t.references :branch, index: true, foreign_key: true
 

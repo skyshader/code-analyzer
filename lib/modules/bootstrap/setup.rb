@@ -40,8 +40,9 @@ module Bootstrap
         Utility::FileHandler.new(
           repository: @repository,
           directory: @directory,
+          branch: @branch,
           base_config: get_analyzer_base_config
-        ).list_files
+        ).list_files.save
         Rails.logger.debug "Handling repository files ---------------------"
       end
       # read directory and generate processable dir structure
