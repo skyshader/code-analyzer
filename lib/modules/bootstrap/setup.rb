@@ -42,10 +42,9 @@ module Bootstrap
           directory: @directory,
           branch: @branch,
           base_config: get_analyzer_base_config
-        ).list_files.save
-        Rails.logger.debug "Handling repository files ---------------------"
+        ).list_files.diff_files.save
+        Rails.logger.debug "Done processing repository files ---------------------"
       end
-      # read directory and generate processable dir structure
     end
 
 

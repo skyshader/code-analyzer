@@ -23,7 +23,10 @@ class FileList < ActiveRecord::Base
   def self.update_files_status files
     ActiveRecord::Base.connection_pool.with_connection do
       FileList.transaction do
-        files.update_all(status: 0)
+        files.each do |file|
+          file.status = 0
+          file.save!
+        end
       end
     end
   end

@@ -4,18 +4,20 @@ module Utility
 
   class FileHandler
 
+    attr_reader :all_files, :existing_files, :difference
+
     def initialize(repository:, directory:, branch:, base_config:)
       @repository = repository
       @directory = directory
       @branch = branch
       @base_config = base_config
-      @dir_listing = []
     end
 
 
     # list files that can be analyzed
     def list_files
       require 'find'
+      @all_files = []
       Find.find(@directory.to_s + "/") do |path|
         file_info = get_file_info path
         if FileTest.directory?(path)
@@ -27,19 +29,22 @@ module Utility
             next
           end
         end
-        @dir_listing << file_info
+        @all_files << file_info
       end
       self
     end
 
 
+    def diff_files
+      @existing_files = FileList.get_file_lists @branch
+      @difference = generate_diff
+    end
+
+
     def save
-      existing_files = FileList.get_file_lists @branch
-      existing_phash = files_to_phash existing_files
-      new_files = reject_existing_files existing_phash
-      removed_files = reject_currently_non_available_files existing_files
+      # TODO: get changed files list already in db
+      FileList.update_files_status @difference[:changed]
       FileList.create_file_lists new_files
-      FileList.update_files_status removed_files
     end
 
 
@@ -75,17 +80,22 @@ module Utility
       parent_path
     end
 
-    def reject_existing_files phash
-      @dir_listing.reject { |h| phash.include?(h[:phash]) }
-    end
 
-    def reject_currently_non_available_files files
-      current_phash = files_to_phash @dir_listing
-      files.reject { |h| current_phash.include?(h[:phash]) }
+    def generate_diff
+      files = {
+        :changed => [],
+        :unchanged => []
+      }
+      phashes = files_to_phash @existing_files
+      @all_files.each do |file|
+        files[:changed] << file if !phashes.include?(file[:phash])
+        files[:unchanged] << file if phashes.include?(file[:phash])
+      end
+      files
     end
 
     def files_to_phash files
-      files.map { |h| h[:phash] }
+      files.map() { |h| h[:phash] }
     end
 
   end
