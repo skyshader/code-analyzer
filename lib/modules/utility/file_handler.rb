@@ -32,19 +32,25 @@ module Utility
         @all_files << file_info
       end
       self
+    rescue => e
+      raise FileHandlerFailureError, "Failed to list directory! -> " + e.message
     end
 
 
     def diff_files
       @existing_files = FileList.get_file_lists @branch
       @difference = generate_diff
+      self
+    rescue => e
+      raise FileHandlerFailureError, "Failed to calculate directory difference! -> " + e.message
     end
 
 
     def save
-      # TODO: get changed files list already in db
       FileList.update_files_status @difference[:changed]
-      FileList.create_file_lists new_files
+      FileList.create_file_lists @difference[:new]
+    rescue => e
+      raise FileHandlerFailureError, "Failed to update file listing! -> " + e.message
     end
 
 
@@ -81,15 +87,25 @@ module Utility
     end
 
 
+    # separate files
+    # that have changed, not changed and are new
     def generate_diff
       files = {
-        :changed => [],
-        :unchanged => []
+        :new => [],
+        :unchanged => [],
+        :changed => []
       }
-      phashes = files_to_phash @existing_files
+
+      existing_phashes = files_to_phash @existing_files
+      current_phashes = files_to_phash @all_files
+      
       @all_files.each do |file|
-        files[:changed] << file if !phashes.include?(file[:phash])
-        files[:unchanged] << file if phashes.include?(file[:phash])
+        files[:new] << file if !existing_phashes.include?(file[:phash])
+        files[:unchanged] << file if existing_phashes.include?(file[:phash])
+      end
+
+      @existing_files.each do |file|
+        files[:changed] << file if !current_phashes.include?(file[:phash])
       end
       files
     end

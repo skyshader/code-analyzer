@@ -10,7 +10,6 @@ class CreateFileLists < ActiveRecord::Migration
       t.string :relative_path
       t.string :parent_path
       t.text :full_path
-      t.integer :to_analyze, default: 1
       t.integer :is_excluded, default: 0
       t.integer :status, default: 1
 

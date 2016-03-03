@@ -19,9 +19,7 @@ module Bootstrap
     def configure
       Thread.new do
         get_bootstrap_config.set_setup_status {
-          Rails.logger.debug "Initializing setup---------------------"
           setup_repository
-          Rails.logger.debug "Completed setup------------------------"
         }
       end
     end
@@ -35,15 +33,13 @@ module Bootstrap
     def setup_repository
       get_bootstrap_config.path_setup
       Dir.chdir(@directory) do
-        # git.empty().clone(@repository).pull(@repository)
-        Rails.logger.debug "Cloned and pull repository ---------------------"
+        git.empty().clone(@repository).pull(@repository)
         Utility::FileHandler.new(
           repository: @repository,
           directory: @directory,
           branch: @branch,
           base_config: get_analyzer_base_config
         ).list_files.diff_files.save
-        Rails.logger.debug "Done processing repository files ---------------------"
       end
     end
 

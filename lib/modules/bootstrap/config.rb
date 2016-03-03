@@ -17,17 +17,17 @@ module Bootstrap
     def set_setup_status
       begin
         yield
-        # more code
         ActiveRecord::Base.connection_pool.with_connection do
           @branch.update(:is_setup => 1)
         end
       rescue => e
-        # handle exception
         Rails.logger.debug "Exception ---------------------" + e.message + " >>> " + e.backtrace.to_s
-        @branch.update(:is_setup => 0)
+        ActiveRecord::Base.connection_pool.with_connection do
+          @branch.update(:is_setup => 0)
+        end
       ensure
-        # respond back with status
-        # Config.new(repository).request_url
+        puts "------- Setup repository complete! -------"
+        # request_callback('setup')
       end
     end
 
@@ -73,12 +73,24 @@ module Bootstrap
     end
 
 
-    def request_url
+    def request_callback process
       uri = URI.parse(Rails.configuration.x.notify_url)
       http = Net::HTTP.new(uri.host, uri.port)
-
       request = Net::HTTP::Post.new(uri.request_uri)
-      request.set_form_data({"Analyzer[repo_id]" => repo.id, "Analyzer[status]" => status, "Analyzer[type]" => call_type})
+
+      if process === 'setup'
+        request.set_form_data({
+          "Process[project_id]" => @repository.project_id,
+          "Process[repository]" => @repository.ssh_url,
+          "Process[type]" => process,
+          "Process[status]" => @branch.is_setup
+        })
+      elsif process === 'analyzer'
+        # some code
+      elsif process === 'activity'
+        # some code
+      end
+      
       response = http.request(request)
       puts response.body.to_s
     rescue => e

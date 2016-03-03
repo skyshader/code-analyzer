@@ -5,6 +5,7 @@ class FileList < ActiveRecord::Base
 
   # create a new file listing as per directory structure
   def self.create_file_lists files
+    return if files.empty?
     ActiveRecord::Base.connection_pool.with_connection do
       FileList.transaction do
         FileList.create(files)
@@ -21,10 +22,12 @@ class FileList < ActiveRecord::Base
 
 
   def self.update_files_status files
+    return if files.empty?
     ActiveRecord::Base.connection_pool.with_connection do
       FileList.transaction do
         files.each do |file|
           file.status = 0
+          file.is_excluded = 0
           file.save!
         end
       end
