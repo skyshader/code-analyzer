@@ -54,6 +54,11 @@ module Utility
     end
 
 
+    def group_files files
+      
+    end
+
+
     private
 
     attr_reader :repository, :directory, :base_config

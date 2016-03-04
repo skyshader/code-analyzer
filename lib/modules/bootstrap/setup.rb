@@ -18,10 +18,11 @@ module Bootstrap
 
     def configure
       Thread.new do
-        get_bootstrap_config.set_setup_status {
+        get_bootstrap_config.set_status('setup') do
           setup_repository
-        }
+        end
       end
+      { :success => true, :message => "Please wait while we setup your repository!" }
     end
 
 
@@ -41,6 +42,8 @@ module Bootstrap
           base_config: get_analyzer_base_config
         ).list_files.diff_files.save
       end
+    rescue => e
+      raise SetupFailureError, "Failed to setup the repository! -> " + e.message
     end
 
 

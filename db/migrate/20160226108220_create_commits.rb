@@ -8,7 +8,7 @@ class CreateCommits < ActiveRecord::Migration
       t.integer :deletions
       t.integer :files_changed
       t.references :contributor, index: true, foreign_key: true
-      t.references :repository, index: true, foreign_key: true
+      t.references :branch, index: true, foreign_key: true
 
       t.timestamps null: false
     end
@@ -16,7 +16,7 @@ class CreateCommits < ActiveRecord::Migration
 
   def down
     remove_foreign_key :commits, column: :contributor_id
-    remove_foreign_key :commits, column: :repository_id
+    remove_foreign_key :commits, column: :branch_id
     drop_table :commits
   end
 end

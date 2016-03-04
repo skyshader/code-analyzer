@@ -14,51 +14,29 @@ module Bootstrap
     end
 
     # new method for updating status
-    def set_setup_status
+    def set_status process
       begin
         yield
         ActiveRecord::Base.connection_pool.with_connection do
-          @branch.update(:is_setup => 1)
+          if process === 'setup'
+            @repository.update(is_setup: 1)
+          elsif process === 'activity'
+            @branch.update(is_activity_generated: 1)
+          end
         end
       rescue => e
         Rails.logger.debug "Exception ---------------------" + e.message + " >>> " + e.backtrace.to_s
         ActiveRecord::Base.connection_pool.with_connection do
-          @branch.update(:is_setup => 0)
+          if process === 'setup'
+            @repository.update(is_setup: 0)
+          elsif process === 'activity'
+            @branch.update(is_activity_generated: 0)
+          end
         end
       ensure
-        puts "------- Setup repository complete! -------"
-        # request_callback('setup')
+        puts "------- #{process} repository complete! -------"
+        # request_callback(process)
       end
-    end
-
-
-    # update log status and notify for each step
-    def status status
-      yield
-      ActiveRecord::Base.connection_pool.with_connection do 
-        @log.update(success_status: status, is_error: 0,  error_status: nil, error_message: nil)
-      end
-    rescue => e
-      ActiveRecord::Base.connection_pool.with_connection do 
-        @log.update(success_status: 0, is_error: 1, error_status: status, error_message: e.to_s)
-      end
-      Rails.logger.debug "Exception at status " + status.to_s + " : " + e.message + " --- " + e.backtrace.to_s
-      raise
-    ensure
-      # call to request url
-      # request_url(repo, status, caller_locations(2,2)[0].label)
-    end
-
-
-    # clone and pull repo setup
-    def setup_repo
-      status(2) {
-        setup_path
-        if @type == 'full'
-          Repository::Git.clone(@repo, @type)
-        end
-        Repository::Git.pull(@repo, @type)
-      }
     end
 
 
@@ -73,6 +51,7 @@ module Bootstrap
     end
 
 
+    # request back with status
     def request_callback process
       uri = URI.parse(Rails.configuration.x.notify_url)
       http = Net::HTTP.new(uri.host, uri.port)
@@ -83,12 +62,17 @@ module Bootstrap
           "Process[project_id]" => @repository.project_id,
           "Process[repository]" => @repository.ssh_url,
           "Process[type]" => process,
-          "Process[status]" => @branch.is_setup
+          "Process[status]" => @repository.is_setup
         })
       elsif process === 'analyzer'
         # some code
       elsif process === 'activity'
-        # some code
+        request.set_form_data({
+          "Process[project_id]" => @repository.project_id,
+          "Process[repository]" => @repository.ssh_url,
+          "Process[type]" => process,
+          "Process[status]" => @branch.is_activity_generated
+        })
       end
       
       response = http.request(request)

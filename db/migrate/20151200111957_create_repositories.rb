@@ -9,7 +9,8 @@ class CreateRepositories < ActiveRecord::Migration
       t.string :default_branch
       t.string :current_branch
       t.integer :is_private
-      t.integer :project_id, null: false
+      t.integer :is_setup, default: 0
+      t.integer :project_id, index: true, null: false
       t.integer :status
 
       t.timestamps null: false

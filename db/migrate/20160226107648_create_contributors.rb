@@ -5,7 +5,7 @@ class CreateContributors < ActiveRecord::Migration
       t.string :email
       t.integer :additions
       t.integer :deletions
-      t.integer :commits
+      t.integer :total_commits
       t.references :branch, index: true, foreign_key: true
 
       t.timestamps null: false

@@ -53,11 +53,11 @@ class MainController < ApplicationController
 
   # setup repository, create essential entries and configuration
   def setup
-    data = JSON.parse(params[:repository].to_json)
+    data = params[:repository].symbolize_keys
     ActiveRecord::Base.connection_pool.with_connection do
       Repository.transaction do
         @repository = Repository.create_repository data
-        @branch = Branch.create_branch @repository
+        @branch = Branch.setup_branch @repository
       end
     end
     
@@ -70,29 +70,27 @@ class MainController < ApplicationController
   end
 
 
-  # generate activity + analyze -> in series
-  def repo_process
-    repo_id = params[:repo_id]
-    type = params[:type]
-    @status = Repository::Process.series(repo_id, type)
-    render json: @status
-  end
-
-
   # for generating activity data
-  def repo_activity
-    repo_id = params[:repo_id]
-    type = params[:type]
-    @status = Repository::Process.activity(repo_id, type)
+  def activity
+    data = params[:repository].symbolize_keys
+    @status = Activity::Process.run data
     render json: @status
   end
 
 
   # for generating analysis reports
-  def repo_analyze
+  def analyze
+    data = params[:repository].symbolize_keys
+    @status = Analyzer::Process.run data
+    render json: @status
+  end
+
+
+  # generate activity + analyze -> in series
+  def repo_process
     repo_id = params[:repo_id]
     type = params[:type]
-    @status = Repository::Process.analyze(repo_id, type)
+    @status = Repository::Process.series(repo_id, type)
     render json: @status
   end
 
