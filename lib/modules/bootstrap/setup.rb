@@ -37,9 +37,7 @@ module Bootstrap
         git.empty().clone(@repository).pull(@repository)
         Utility::FileHandler.new(
           repository: @repository,
-          directory: @directory,
-          branch: @branch,
-          base_config: get_analyzer_base_config
+          branch: @branch
         ).list_files.diff_files.save
       end
     rescue => e
@@ -62,12 +60,6 @@ module Bootstrap
         branch: @branch,
         directory: @directory
       )
-    end
-
-
-    # get analyzer config
-    def get_analyzer_base_config
-      @analyzer_config ||= Analyzer::BaseConfig.new
     end
 
 

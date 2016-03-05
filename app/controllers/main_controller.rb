@@ -127,7 +127,6 @@ class MainController < ApplicationController
           current_batch_index += 1 if !batched[current_batch_index].nil?
           batched[current_batch_index] ||= []
           batched[current_batch_index] << file
-          puts current_batch_size.to_s + " <- Current size at index " + current_batch_index.to_s
           current_batch_size = file['size']
         elsif file['size'] < (max_batch_size - current_batch_size)
           batched[current_batch_index] ||= []

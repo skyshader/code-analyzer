@@ -16,7 +16,14 @@ class FileList < ActiveRecord::Base
 
   def self.get_file_lists branch
     ActiveRecord::Base.connection_pool.with_connection do
-      FileList.where(:branch_id => branch.id, :status => 1)
+      FileList.where(branch_id: branch.id, status: 1)
+    end
+  end
+
+
+  def self.get_files_to_process branch
+    ActiveRecord::Base.connection_pool.with_connection do
+      FileList.where(branch_id: branch.id, is_excluded: 0, is_file: 1, status: 1)
     end
   end
 

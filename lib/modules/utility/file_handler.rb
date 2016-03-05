@@ -4,13 +4,13 @@ module Utility
 
   class FileHandler
 
-    attr_reader :all_files, :existing_files, :difference
+    attr_reader :repository, :directory, :all_files, :existing_files, :difference, :analyzer_config
 
-    def initialize(repository:, directory:, branch:, base_config:)
+    def initialize(repository:, branch:)
       @repository = repository
-      @directory = directory
+      @directory = repository.directory
       @branch = branch
-      @base_config = base_config
+      @analyzer_config = Analyzer::BaseConfig.new
     end
 
 
@@ -21,11 +21,11 @@ module Utility
       Find.find(@directory.to_s + "/") do |path|
         file_info = get_file_info path
         if FileTest.directory?(path)
-          if @base_config.dir_excluded.include?(file_info[:name])
+          if @analyzer_config.dir_excluded.include?(file_info[:name])
             Find.prune
           end
         else
-          if !@base_config.ext_supported.include?(file_info[:extension])
+          if !@analyzer_config.ext_supported.include?(file_info[:extension])
             next
           end
         end
@@ -37,6 +37,15 @@ module Utility
     end
 
 
+    # group files based on extensions
+    def grouped_file_batches
+      file_groups = FileList.get_files_to_process(@branch)
+      .group_by { |file| file.extension }
+      create_batches file_groups
+    end
+
+
+    # group new, changed and unchanged files
     def diff_files
       @existing_files = FileList.get_file_lists @branch
       @difference = generate_diff
@@ -54,28 +63,21 @@ module Utility
     end
 
 
-    def group_files files
-      
-    end
-
-
     private
-
-    attr_reader :repository, :directory, :base_config
 
     def get_file_info path
       is_directory = FileTest.directory?(path)
       {
-        :name => File.basename(path),
-        :is_file =>  is_directory ? 0 : 1,
-        :extension => is_directory ? nil : File.extname(path),
-        :file_size => File.size(path).to_s,
-        :phash => Digest::SHA256.hexdigest(path),
-        :fhash => is_directory ? nil : Digest::SHA256.file(path).hexdigest,
-        :relative_path => project_relative_path(path),
-        :parent_path => parent_path(path),
-        :full_path => path,
-        :branch => @branch
+        name: File.basename(path),
+        is_file:  is_directory ? 0 : 1,
+        extension: is_directory ? nil : File.extname(path),
+        file_size: File.size(path).to_s,
+        phash: Digest::SHA256.hexdigest(path),
+        fhash: is_directory ? nil : Digest::SHA256.file(path).hexdigest,
+        relative_path: project_relative_path(path),
+        parent_path: parent_path(path),
+        full_path: path,
+        branch: @branch
       }
     end
 
@@ -93,7 +95,9 @@ module Utility
 
 
     # separate files
-    # that have changed, not changed and are new
+    # that have changed,
+    # not changed and 
+    # are newly added
     def generate_diff
       files = {
         :new => [],
@@ -114,6 +118,33 @@ module Utility
       end
       files
     end
+
+
+    def create_batches files_groups
+      batch = {}
+      current_batch_index = 0
+      current_batch_size = 0
+      max_batch_size = 100000
+      files_groups.each do |files|
+        batch[files[0]] = []
+        files[1].each do |file|
+          if file.file_size <= 0
+            next
+          elsif file.file_size >= (max_batch_size - current_batch_size)
+            current_batch_index += 1 if !batch[files[0]][current_batch_index].nil?
+            batch[files[0]][current_batch_index] ||= []
+            batch[files[0]][current_batch_index] << file
+            current_batch_size = file.file_size
+          elsif file.file_size < (max_batch_size - current_batch_size)
+            batch[files[0]][current_batch_index] ||= []
+            batch[files[0]][current_batch_index] << file
+            current_batch_size += file.file_size
+          end
+        end
+      end
+      return batch
+    end
+
 
     def files_to_phash files
       files.map() { |h| h[:phash] }

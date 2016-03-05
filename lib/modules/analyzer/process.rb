@@ -8,13 +8,12 @@
 module Analyzer
   class Process
 
-    attr_reader :repository, :branch, :directory, :files, :config
+    attr_reader :repository, :branch, :directory, :files
   
     def initialize(repository:, branch:)
       @repository = repository
       @branch = branch
       @directory = repository.directory
-      @config = Analyzer::BaseConfig.new
     end
 
 
@@ -39,11 +38,6 @@ module Analyzer
     end
 
 
-    # ----------------------------------------------
-    # Private methods that are used to ANALYZE repo
-    # ----------------------------------------------
-    private
-
     # transfer setup to a thread
     def setup
       Thread.new do
@@ -55,17 +49,36 @@ module Analyzer
     end
 
 
+    # ----------------------------------------------
+    # Private methods that are used to ANALYZE repo
+    # ----------------------------------------------
+    private
+
+
     # setup pre-requisites for analyzer
     def setup_analyzer
       Dir.chdir(@directory) do
-        git.pull(@repository)
+        # freshen up the repository
+        # git.pull(@repository)
+
+        # update file listing
         Utility::FileHandler.new(
           repository: @repository,
-          directory: @directory,
-          branch: @branch,
-          base_config: get_analyzer_base_config
+          branch: @branch
         ).list_files.diff_files.save
-        @files = FileList.get_file_lists @branch
+
+        # get grouped files by extensions
+        @files = Utility::FileHandler.new(
+          repository: @repository,
+          branch: @branch
+        ).grouped_file_batches
+
+        # run tasks
+        Analyzer::TaskRunner.new(
+          repository: @repository,
+          branch: @branch,
+          files: @files
+        ).run
       end
     end
 
