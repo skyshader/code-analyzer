@@ -4,6 +4,7 @@ class CreateFileLists < ActiveRecord::Migration
       t.string :name
       t.integer :is_file
       t.string :extension
+      t.string :language
       t.integer :file_size
       t.string :phash
       t.string :fhash

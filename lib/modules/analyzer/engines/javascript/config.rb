@@ -4,7 +4,7 @@
 
 module Analyzer
   module Engines
-    module JavaScript
+    module Javascript
 
       class Config
 

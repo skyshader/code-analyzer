@@ -8,7 +8,7 @@
 module Analyzer
   class Process
 
-    attr_reader :repository, :branch, :directory, :files
+    attr_reader :repository, :branch, :directory, :batches
   
     def initialize(repository:, branch:)
       @repository = repository
@@ -68,7 +68,7 @@ module Analyzer
         ).list_files.diff_files.save
 
         # get grouped files by extensions
-        @files = Utility::FileHandler.new(
+        @batches = Utility::FileHandler.new(
           repository: @repository,
           branch: @branch
         ).grouped_file_batches
@@ -77,7 +77,7 @@ module Analyzer
         Analyzer::TaskRunner.new(
           repository: @repository,
           branch: @branch,
-          files: @files
+          batches: @batches
         ).run
       end
     end

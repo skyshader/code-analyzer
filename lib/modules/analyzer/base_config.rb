@@ -6,15 +6,23 @@ module Analyzer
 
     # supported languages with their extensions
     LANGUAGES_SUPPORTED = {
-      "php" => [".php"],
-      "javascript" => [".js", ".jsx"],
-      "css" => [".css"]
+      php: [".php"],
+      javascript: [".js", ".jsx"],
+      css: [".css"]
     }.freeze
 
+    # available engines for languages
     ENGINES = {
-      "php" => ["phpcs_engine", "phpmd_engine"],
-      "javascript" => ["eslint_engine"],
-      "css" => ["csslint_engine"]
+      php: [
+        ::Analyzer::Engines::PHP::CodeSniffer::Engine,
+        ::Analyzer::Engines::PHP::MessDetector::Engine
+      ],
+      javascript: [
+        ::Analyzer::Engines::Javascript::Engine
+      ],
+      css: [
+        ::Analyzer::Engines::CSS::Engine
+      ]
     }.freeze
 
 
