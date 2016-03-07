@@ -9,19 +9,21 @@ module Analyzer
 
         class Engine
 
-          attr_reader :repository, :branch, :batches, :directory
+          attr_reader :repository, :branch, :batches, :directory, :engine_config
 
           def initialize(repository:, branch:, batches:)
             @repository = repository
             @branch = branch
             @batches = batches
             @directory = repository.directory
+            @engine_config = ::Analyzer::Engines::PHP::CodeSniffer::Config
           end
 
 
           def run
-            sleep 2
             puts ">>>>>>>> Running PHP Code Sniffer <<<<<<<<"
+            puts @engine_config::SNIFFS.keys
+            puts @batches.to_s
             puts "------------------------------------------------"
 
           end
