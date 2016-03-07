@@ -12,18 +12,23 @@ module Analyzer
       @batches = batches
       @directory = repository.directory
       @analyzer_config = Analyzer::BaseConfig.new
+      @pool = Utility::Pool.new(2)
     end
 
     def run
       @batches.keys.each do |language|
         Analyzer::BaseConfig::ENGINES[language.to_sym].each do |e|
-          engine = e.new(
-            repository: @repository,
-            branch: @branch,
-            batches: @batches[language]
-          ).run
+          @pool.schedule do
+            engine = e.new(
+              repository: @repository,
+              branch: @branch,
+              batches: @batches[language]
+            ).run
+          end
         end
       end
+      
+      at_exit { @pool.shutdown }
     end
 
   end

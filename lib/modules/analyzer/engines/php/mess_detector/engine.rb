@@ -20,6 +20,7 @@ module Analyzer
 
 
           def run
+            sleep 2
             puts ">>>>>>>> Running PHP Mess Detector <<<<<<<<"
             puts @batches.to_s
             puts "------------------------------------------------"

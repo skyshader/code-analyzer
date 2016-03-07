@@ -20,6 +20,7 @@ module Analyzer
 
 
           def run
+            sleep 2
             puts ">>>>>>>> Running PHP Code Sniffer <<<<<<<<"
             puts @batches.to_s
             puts "------------------------------------------------"
