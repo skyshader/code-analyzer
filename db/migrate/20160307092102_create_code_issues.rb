@@ -1,7 +1,7 @@
 class CreateCodeIssues < ActiveRecord::Migration
   def up
     create_table :code_issues, id: false do |t|
-      t.integer :id, limit: 8
+      t.integer :id
       t.text :file_path
       t.text :issue_text
       t.integer :begin_line
@@ -27,7 +27,7 @@ class CreateCodeIssues < ActiveRecord::Migration
     add_index :code_issues, :file_list_id
 
     execute(
-      "ALTER TABLE code_issues CHANGE `id` `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT"
+      "ALTER TABLE code_issues CHANGE `id` `id` INT UNSIGNED NOT NULL AUTO_INCREMENT"
     )
   end
 
