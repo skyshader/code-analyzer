@@ -27,7 +27,10 @@ module Analyzer
           end
         end
       end
-      
+    rescue => e
+      # Rails.logger.debug "Exception ---------------------" + e.message + " >>> " + e.backtrace.to_s
+      raise
+    ensure
       at_exit { @pool.shutdown }
     end
 
