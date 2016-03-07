@@ -25,6 +25,10 @@ class CreateCodeIssues < ActiveRecord::Migration
     add_index :code_issues, :branch_id
     add_index :code_issues, :issue_category_id
     add_index :code_issues, :file_list_id
+
+    execute(
+      "ALTER TABLE code_issues CHANGE `id` `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT"
+    )
   end
 
   def down
