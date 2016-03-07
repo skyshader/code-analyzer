@@ -22,8 +22,8 @@ module Analyzer
 
           def run
             puts ">>>>>>>> Running PHP Code Sniffer <<<<<<<<"
-            puts @engine_config::SNIFFS.keys
-            puts @batches.to_s
+            # puts @engine_config::SNIFFS.keys
+            # puts @batches.to_s
             puts "------------------------------------------------"
           end
 

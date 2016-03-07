@@ -22,9 +22,32 @@ module Analyzer
 
           def run
             puts ">>>>>>>> Running PHP Mess Detector <<<<<<<<"
-            puts @engine_config::CATEGORIES.keys
-            puts @batches.to_s
+            @batches.each do |batch|
+              result = process_batch batch
+              puts result
+              break
+            end
             puts "------------------------------------------------"
+          rescue => e
+            Rails.logger.debug "Exception ---------------------" + e.message + " >>> " + e.backtrace.to_s
+            raise
+          end
+
+          private
+
+          def process_batch batch
+            files = nil
+            batch.each do |file|
+              files = '' if !files
+              files += file[:full_path] + ","
+            end
+            files.chomp!(',')
+            result = execute_phpmd_command(files)
+          end
+
+
+          def execute_phpmd_command files
+            `phpmd #{files} #{@engine_config::RESULT_FORMAT} #{@engine_config::RULESETS}`
           end
 
         end

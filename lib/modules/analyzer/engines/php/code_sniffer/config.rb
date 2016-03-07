@@ -54,7 +54,7 @@ module Analyzer
             "Squiz.WhiteSpace.ScopeClosingBrace.ContentBefore" => 50000,
             "Squiz.WhiteSpace.ScopeClosingBrace.Indent" => 50000,
             "Squiz.WhiteSpace.SuperfluousWhitespace.EndLine" => 50000,
-            }.freeze
+          }.freeze
 
         end
 

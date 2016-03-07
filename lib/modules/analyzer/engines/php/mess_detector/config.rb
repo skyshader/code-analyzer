@@ -13,6 +13,8 @@ module Analyzer
 
           DEFAULT_POINT = 100000
 
+          RESULT_FORMAT = 'xml'
+
           CATEGORIES = {
             # clean code rules
             "BooleanArgumentFlag" => ["Clarity", 300000],
