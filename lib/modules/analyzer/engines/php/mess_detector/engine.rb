@@ -9,7 +9,7 @@ module Analyzer
 
         class Engine
 
-          attr_reader :repository, :branch, :batches, :directory, :engine_config
+          attr_reader :repository, :branch, :batches, :directory, :engine_config, :engine_config
 
           def initialize(repository:, branch:, batches:)
             @repository = repository
@@ -17,15 +17,16 @@ module Analyzer
             @batches = batches
             @directory = repository.directory
             @engine_config = ::Analyzer::Engines::PHP::MessDetector::Config
+            @engine_formatter = ::Analyzer::Engines::PHP::MessDetector::Formatter
           end
 
 
           def run
             puts ">>>>>>>> Running PHP Mess Detector <<<<<<<<"
             @batches.each do |batch|
-              result = process_batch batch
-              puts result
-              # format results
+              result_xml = process_batch batch
+              result_hash = @engine_formatter.xml_to_hash result_xml
+              puts result_hash
               # store data
             end
             puts "------------------------------------------------"

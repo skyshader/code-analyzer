@@ -9,6 +9,10 @@ module Analyzer
 
         class Formatter
 
+          def self.xml_to_hash xml
+            xml
+          end
+
         end
 
       end
