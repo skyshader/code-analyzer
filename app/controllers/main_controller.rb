@@ -53,6 +53,7 @@ class MainController < ApplicationController
 
   # setup repository, create essential entries and configuration
   def setup
+    puts params
     data = params[:repository].symbolize_keys
     ActiveRecord::Base.connection_pool.with_connection do
       Repository.transaction do
@@ -60,7 +61,7 @@ class MainController < ApplicationController
         @branch = Branch.setup_branch @repository
       end
     end
-    
+
     @status = Bootstrap::Setup.new(
       repository: @repository,
       branch: @branch
@@ -134,7 +135,7 @@ class MainController < ApplicationController
           current_batch_size += file['size']
         end
       end
-      return batched
+      return batched1
     end
 
     def phpmd batches
