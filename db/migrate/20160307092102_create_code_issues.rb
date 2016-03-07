@@ -19,12 +19,16 @@ class CreateCodeIssues < ActiveRecord::Migration
     end
 
     execute(
-      "ALTER TABLE code_issues ADD PRIMARY KEY (id, branch_id) partition by HASH(branch_id);"
+      "ALTER TABLE code_issues ADD PRIMARY KEY (id, branch_id) PARTITION BY HASH(branch_id) PARTITIONS 101;"
     )
 
     add_index :code_issues, :branch_id
     add_index :code_issues, :issue_category_id
     add_index :code_issues, :file_list_id
+
+    execute(
+      "ALTER TABLE code_issues CHANGE `id` `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT"
+    )
   end
 
   def down
