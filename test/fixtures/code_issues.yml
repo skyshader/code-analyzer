@@ -1,0 +1,27 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  file_path: MyText
+  issue_text: MyText
+  begin_line: 1
+  end_line: 1
+  column: 1
+  source_code: MyText
+  weight: 1
+  engine: MyString
+  engine_ruleset: MyString
+  issue_category_id: 
+  file_list_id: 
+
+two:
+  file_path: MyText
+  issue_text: MyText
+  begin_line: 1
+  end_line: 1
+  column: 1
+  source_code: MyText
+  weight: 1
+  engine: MyString
+  engine_ruleset: MyString
+  issue_category_id: 
+  file_list_id: 
