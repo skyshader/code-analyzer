@@ -25,7 +25,8 @@ module Analyzer
             @batches.each do |batch|
               result = process_batch batch
               puts result
-              break
+              # format results
+              # store data
             end
             puts "------------------------------------------------"
           rescue => e
