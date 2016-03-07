@@ -19,7 +19,7 @@ class CreateCodeIssues < ActiveRecord::Migration
     end
 
     execute(
-      "ALTER TABLE code_issues ADD PRIMARY KEY (id, branch_id) PARTITION BY HASH(branch_id) PARTITIONS 101;"
+      "ALTER TABLE code_issues ADD PRIMARY KEY (id, branch_id) PARTITION BY HASH(branch_id) PARTITIONS 11;"
     )
 
     add_index :code_issues, :branch_id
