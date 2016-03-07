@@ -26,7 +26,7 @@ ActiveRecord::Schema.define(version: 20160307092102) do
   add_index "branches", ["repository_id"], name: "index_branches_on_repository_id", using: :btree
 
   create_table "code_issues", id: false, force: :cascade do |t|
-    t.integer  "id",                limit: 8,     default: 0, null: false
+    t.integer  "id",                limit: 8,                 null: false
     t.text     "file_path",         limit: 65535
     t.text     "issue_text",        limit: 65535
     t.integer  "begin_line",        limit: 4
