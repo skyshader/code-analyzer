@@ -16,6 +16,8 @@ module Analyzer
             "Internal.Tokenizer.Exception"
           ].freeze
 
+          RESULT_FORMAT = '--report=checkstyle'
+
           SNIFFS = {
             "Generic.ControlStructures.InlineControlStructure.NotAllowed" => 60000,
             "Generic.Files.LineEndings.InvalidEOLChar" => 60000,

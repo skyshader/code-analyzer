@@ -47,7 +47,7 @@ module Analyzer
             "NumberOfChildren" => ["clarity", 1000000],
             "DepthOfInheritance" => ["clarity", 500000],
             "CouplingBetweenObjects" => ["clarity", 400000],
-            
+
             # naming rules
             "ShortVariable" => ["style", 500000],
             "LongMethod" => ["complexity", 200000],
@@ -55,7 +55,7 @@ module Analyzer
             "ConstructorWithNameAsEnclosingClass" => ["compatibility", 400000],
             "ConstantNamingConventions" => ["style", 100000],
             "BooleanGetMethodName" => ["style", 200000],
-            
+
             # unused code rules
             "UnusedPrivateField" => ["bug risk", 200000],
             "UnusedLocalVariable" => ["bug risk", 200000],

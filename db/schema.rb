@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160226108724) do
+ActiveRecord::Schema.define(version: 20160307092102) do
 
   create_table "branches", force: :cascade do |t|
     t.string   "name",                  limit: 255
@@ -24,6 +24,28 @@ ActiveRecord::Schema.define(version: 20160226108724) do
   end
 
   add_index "branches", ["repository_id"], name: "index_branches_on_repository_id", using: :btree
+
+  create_table "code_issues", id: false, force: :cascade do |t|
+    t.integer  "id",                limit: 4,                 null: false
+    t.text     "file_path",         limit: 65535
+    t.text     "issue_text",        limit: 65535
+    t.integer  "begin_line",        limit: 4
+    t.integer  "end_line",          limit: 4
+    t.integer  "issue_column",      limit: 4
+    t.text     "source_code",       limit: 65535
+    t.integer  "weight",            limit: 4
+    t.string   "engine",            limit: 255
+    t.string   "engine_ruleset",    limit: 255
+    t.integer  "branch_id",         limit: 4,     default: 0, null: false
+    t.integer  "issue_category_id", limit: 4
+    t.integer  "file_list_id",      limit: 4
+    t.datetime "created_at",                                  null: false
+    t.datetime "updated_at",                                  null: false
+  end
+
+  add_index "code_issues", ["branch_id"], name: "index_code_issues_on_branch_id", using: :btree
+  add_index "code_issues", ["file_list_id"], name: "index_code_issues_on_file_list_id", using: :btree
+  add_index "code_issues", ["issue_category_id"], name: "index_code_issues_on_issue_category_id", using: :btree
 
   create_table "commits", force: :cascade do |t|
     t.string   "sha",            limit: 255
@@ -73,6 +95,14 @@ ActiveRecord::Schema.define(version: 20160226108724) do
   end
 
   add_index "file_lists", ["branch_id"], name: "index_file_lists_on_branch_id", using: :btree
+
+  create_table "issue_categories", force: :cascade do |t|
+    t.string   "name",        limit: 255
+    t.text     "description", limit: 65535
+    t.integer  "status",      limit: 4,     default: 1
+    t.datetime "created_at",                            null: false
+    t.datetime "updated_at",                            null: false
+  end
 
   create_table "repositories", force: :cascade do |t|
     t.string   "username",       limit: 255

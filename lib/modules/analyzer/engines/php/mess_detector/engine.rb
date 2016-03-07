@@ -26,7 +26,7 @@ module Analyzer
             @batches.each do |batch|
               result_xml = process_batch batch
               result_hash = @engine_formatter.xml_to_hash result_xml
-              puts result_hash
+              # puts result_hash
               # store data
             end
             puts "------------------------------------------------"
