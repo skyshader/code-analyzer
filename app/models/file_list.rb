@@ -1,5 +1,6 @@
 class FileList < ActiveRecord::Base
 
+  has_many :code_issues
   belongs_to :branch
 
 
