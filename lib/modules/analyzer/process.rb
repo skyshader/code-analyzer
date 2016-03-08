@@ -42,7 +42,7 @@ module Analyzer
     def setup
       Thread.new do
         get_bootstrap_config.set_status('analyze') do
-          setup_analyzer
+          run_analyzer
         end
       end
       { success: true, message: "Please wait while we analyze your repository!" }
@@ -56,7 +56,7 @@ module Analyzer
 
 
     # setup pre-requisites for analyzer
-    def setup_analyzer
+    def run_analyzer
       Dir.chdir(@directory) do
         # freshen up the repository
         # git.pull(@repository)
@@ -79,6 +79,9 @@ module Analyzer
           branch: @branch,
           batches: @batches
         ).run
+
+        # update version
+        Branch.update_version @branch
       end
     end
 

@@ -11,6 +11,8 @@ class CreateCodeIssues < ActiveRecord::Migration
       t.integer :weight
       t.string :engine
       t.string :engine_ruleset
+      t.integer :version
+      t.integer :status, default: 0
       t.references :branch
       t.references :issue_category
       t.references :file_list
