@@ -25,4 +25,13 @@ class Branch < ActiveRecord::Base
     end
   end
 
+
+  def self.reset_version branch
+    CodeIssue.transaction do
+      ActiveRecord::Base.connection_pool.with_connection do
+        CodeIssue.where(branch_id: branch.id, version: (branch.current_version + 1)).delete_all
+      end
+    end
+  end
+
 end
