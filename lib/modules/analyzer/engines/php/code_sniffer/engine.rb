@@ -21,13 +21,12 @@ module Analyzer
           end
 
           def run
-            puts ">>>>>>>> Running PHP Code Sniffer <<<<<<<<"
+            Rails.logger.debug ">>>>>>>> Running PHP Code Sniffer <<<<<<<<"
             @batches.each do |batch|
               result_xml = process_batch batch
-              result_hash = @engine_formatter.xml_to_hash result_xml
-              # puts result_hash
+              result_hash = @engine_formatter.xml_to_hash result_xml, @branch
+              CodeIssues.store_results result_hash, @branch
             end
-            puts "------------------------------------------------"
             rescue => e
               Rails.logger.debug "Exception ---------------------" + e.message + " >>> " + e.backtrace.to_s
             raise

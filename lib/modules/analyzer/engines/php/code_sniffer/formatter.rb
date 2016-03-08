@@ -8,10 +8,21 @@ module Analyzer
       module CodeSniffer
 
         class Formatter
-            def self.xml_to_hash xml
+
+            def initialize branch
+              @branch = branch
+              @issue_categories = {}
+              IssueCategory.find_each do |category|
+                @issue_categories[category.name.to_sym] = category.id
+              end
+              @file_list = {}
+              @config = Analyzer::Engines::PHP::CodeSniffer::Config
+            end
+
+            def xml_to_hash xml
                 # @SNIFFS = Analyzer::Engines::PHP::CodeSniffer::SNIFFS
-                xml_doc = Nokogiri::XML(xml)
-                file_array = xml_doc.xpath("//file")
+                require 'nokogiri'
+                file_array = Nokogiri::XML(xml).xpath("//file")
                 errors = []
                 file_array.each do |file|
                   file.elements.each do |error|
@@ -25,12 +36,20 @@ module Analyzer
                       :weight => get_source_weight(error["source"]),
                       :engine => "phpcs",
                       :engine_ruleset => error["source"],
-                      :issue_category => "style"
+                      :version => @branch.current_version + 1,
+                      :issue_category_id => "style"
+                      :file_list_id => get_file_id(file["name"]),
+                      :branch_id => @branch.id
                     }
                   end
                 end
                 errors
             end
+
+            def self.format xml, branch
+              new(branch).xml_to_hash(xml)
+            end
+
 
             def get_source_code(file, begin_line, end_line)
               file = File.open(file)
@@ -42,10 +61,14 @@ module Analyzer
             end
 
             def get_source_weight(source)
-              Analyzer::Engines::PHP::CodeSniffer::Config::SNIFFS.each do |category, weight|
+              @config::SNIFFS.each do |category, weight|
                 return weight if category === source
               end
-              return Analyzer::Engines::PHP::CodeSniffer::Config::DEFAULT_POINT
+              return @config::DEFAULT_POINT
+            end
+
+            def get_file_id(path)
+              @file_list[path.to_sym] ||= FileList.find_by(full_path: path).id
             end
 
           end

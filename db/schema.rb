@@ -14,16 +14,13 @@
 ActiveRecord::Schema.define(version: 20160307092102) do
 
   create_table "branches", force: :cascade do |t|
-    t.string   "name",                   limit: 255
-    t.integer  "is_analyzed",            limit: 4,   default: 0
-    t.integer  "is_analyzer_processing", limit: 4,   default: 0
-    t.integer  "is_activity_generated",  limit: 4,   default: 0
-    t.integer  "is_activity_processing", limit: 4,   default: 0
-    t.integer  "current_version",        limit: 4,   default: 0
-    t.integer  "status",                 limit: 4,   default: 1
-    t.integer  "repository_id",          limit: 4
-    t.datetime "created_at",                                     null: false
-    t.datetime "updated_at",                                     null: false
+    t.string   "name",                  limit: 255
+    t.integer  "is_analyzed",           limit: 4,   default: 0
+    t.integer  "is_activity_generated", limit: 4,   default: 0
+    t.integer  "status",                limit: 4,   default: 1
+    t.integer  "repository_id",         limit: 4
+    t.datetime "created_at",                                    null: false
+    t.datetime "updated_at",                                    null: false
   end
 
   add_index "branches", ["repository_id"], name: "index_branches_on_repository_id", using: :btree
