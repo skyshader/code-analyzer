@@ -83,6 +83,9 @@ module Analyzer
         # update version
         Branch.update_version @branch
       end
+    rescue => e
+      Branch.reset_version @branch
+      raise
     end
 
 
