@@ -11,6 +11,7 @@ class MainController < ApplicationController
 
   # setup repository, create essential entries and configuration
   def setup
+    puts params
     data = params[:repository].symbolize_keys
     ActiveRecord::Base.connection_pool.with_connection do
       Repository.transaction do
@@ -18,7 +19,7 @@ class MainController < ApplicationController
         @branch = Branch.setup_branch @repository
       end
     end
-    
+
     @status = Bootstrap::Setup.new(
       repository: @repository,
       branch: @branch

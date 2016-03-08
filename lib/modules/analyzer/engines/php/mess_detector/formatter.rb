@@ -14,7 +14,7 @@ module Analyzer
             @branch = branch
             @issue_categories = {}
             IssueCategory.find_each do |category|
-              @issue_categories[category.name.to_sym] = category.id 
+              @issue_categories[category.name.to_sym] = category.id
             end
             @file_list = {}
             @config = ::Analyzer::Engines::PHP::MessDetector::Config

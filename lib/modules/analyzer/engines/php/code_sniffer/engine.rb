@@ -17,18 +17,37 @@ module Analyzer
             @batches = batches
             @directory = repository.directory
             @engine_config = ::Analyzer::Engines::PHP::CodeSniffer::Config
+            @engine_formatter = ::Analyzer::Engines::PHP::CodeSniffer::Formatter
           end
-
 
           def run
-            puts ">>>>>>>> Running PHP Code Sniffer <<<<<<<<"
-            # puts @engine_config::SNIFFS.keys
-            # puts @batches.to_s
-            puts "------------------------------------------------"
+            Rails.logger.debug ">>>>>>>> Running PHP Code Sniffer <<<<<<<<"
+            @batches.each do |batch|
+              result_xml = process_batch batch
+              result_hash = @engine_formatter.format result_xml, @branch
+              CodeIssue.store_results result_hash, @branch
+            end
+            rescue => e
+              Rails.logger.debug "Exception ---------------------" + e.message + " >>> " + e.backtrace.to_s
+            raise
           end
 
-        end
+          private
+          def process_batch batch
+            files = nil
+            batch.each do |file|
+              files = '' if !files
+              files += file[:full_path] + " "
+            end
+            files.chomp!(' ')
+            result = execute_phpcs_command(files)
+          end
 
+
+          def execute_phpcs_command files
+            `phpcs #{@engine_config::RESULT_CONFIG} #{files}`
+          end
+        end
       end
     end
   end
