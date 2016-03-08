@@ -36,7 +36,7 @@ module Analyzer
                       engine: "phpcs",
                       engine_ruleset: error["source"],
                       version: @branch.current_version + 1,
-                      issue_category_id: "style",
+                      issue_category_id: get_issue_category,
                       file_list_id: get_file_id(file["name"]),
                       branch_id: @branch.id
                     }
@@ -49,6 +49,9 @@ module Analyzer
               new(branch).xml_to_hash(xml)
             end
 
+            def get_issue_category()
+              @issue_categories[:style]
+            end
 
             def get_source_code(file, begin_line, end_line)
               file = File.open(file)
