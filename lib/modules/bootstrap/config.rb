@@ -16,12 +16,20 @@ module Bootstrap
     # new method for updating status
     def set_status process
       begin
+        ActiveRecord::Base.connection_pool.with_connection do
+          @branch.update(is_activity_processing: 1) if process === 'activity'
+          @branch.update(is_analyzer_processing: 1) if process === 'analyze'
+        end
+
         yield
+        
         ActiveRecord::Base.connection_pool.with_connection do
           if process === 'setup'
             @repository.update(is_setup: 1)
           elsif process === 'activity'
-            @branch.update(is_activity_generated: 1)
+            @branch.update(is_activity_generated: 1, is_activity_processing: 0)
+          elsif process === 'analyze'
+            @branch.update(is_analyzed: 1, is_analyzer_processing: 0)
           end
         end
       rescue => e
@@ -30,7 +38,9 @@ module Bootstrap
           if process === 'setup'
             @repository.update(is_setup: 0)
           elsif process === 'activity'
-            @branch.update(is_activity_generated: 0)
+            @branch.update(is_activity_generated: 0, is_activity_processing: 0)
+          elsif process === 'analyze'
+            @branch.update(is_analyzed: 0, is_analyzer_processing: 0)
           end
         end
       ensure
