@@ -25,10 +25,8 @@ module Analyzer
             puts ">>>>>>>> Running PHP Mess Detector <<<<<<<<"
             @batches.each do |batch|
               result_xml = process_batch batch
-              puts result_xml
-              puts "#####-----------------------------------------#####"
-              result_hash = @engine_formatter.xml_to_hash result_xml
-              puts result_hash
+              result_hash = @engine_formatter.format result_xml
+              puts result_hash.to_json
               # store data
             end
             puts "------------------------------------------------"
