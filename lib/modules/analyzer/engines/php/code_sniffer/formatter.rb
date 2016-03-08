@@ -16,30 +16,29 @@ module Analyzer
                 @issue_categories[category.name.to_sym] = category.id
               end
               @file_list = {}
-              @config = Analyzer::Engines::PHP::CodeSniffer::Config
+              @config = ::Analyzer::Engines::PHP::CodeSniffer::Config
             end
 
             def xml_to_hash xml
-                # @SNIFFS = Analyzer::Engines::PHP::CodeSniffer::SNIFFS
                 require 'nokogiri'
                 file_array = Nokogiri::XML(xml).xpath("//file")
                 errors = []
                 file_array.each do |file|
                   file.elements.each do |error|
                     errors<< {
-                      :file_path => file["name"],
-                      :issue_text => error["message"],
-                      :begin_line => error["line"].to_i,
-                      :end_line => error["line"].to_i,
-                      :issue_column => error["column"],
-                      :source_code => get_source_code(file["name"],error["line"],error["line"])
-                      :weight => get_source_weight(error["source"]),
-                      :engine => "phpcs",
-                      :engine_ruleset => error["source"],
-                      :version => @branch.current_version + 1,
-                      :issue_category_id => "style"
-                      :file_list_id => get_file_id(file["name"]),
-                      :branch_id => @branch.id
+                      file_path: file["name"],
+                      issue_text: error["message"],
+                      begin_line: error["line"].to_i,
+                      end_line: error["line"].to_i,
+                      issue_column: error["column"],
+                      source_code: get_source_code(file["name"],error["line"],error["line"]),
+                      weight: get_source_weight(error["source"]),
+                      engine: "phpcs",
+                      engine_ruleset: error["source"],
+                      version: @branch.current_version + 1,
+                      issue_category_id: "style",
+                      file_list_id: get_file_id(file["name"]),
+                      branch_id: @branch.id
                     }
                   end
                 end
@@ -77,4 +76,3 @@ module Analyzer
       end
     end
   end
-end
