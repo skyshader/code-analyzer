@@ -14,4 +14,15 @@ class Branch < ActiveRecord::Base
     )
   end
 
+
+  def self.update_version branch
+    CodeIssue.transaction do
+      ActiveRecord::Base.connection_pool.with_connection do
+        branch.current_version += 1
+        branch.save
+        CodeIssue.where(branch_id: branch.id, version: branch.current_version).update_all(status: 1)
+      end
+    end
+  end
+
 end

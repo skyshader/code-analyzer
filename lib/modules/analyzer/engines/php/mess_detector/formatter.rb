@@ -37,8 +37,10 @@ module Analyzer
                   weight: get_rule_weight(error["rule"]),
                   engine: "phpmd",
                   engine_ruleset: error["rule"],
+                  version: @branch.current_version + 1,
                   issue_category_id: get_issue_category(error["rule"]),
-                  file_list_id: get_file_id(file["name"])
+                  file_list_id: get_file_id(file["name"]),
+                  branch_id: @branch.id
                 }
               end
             end

@@ -79,6 +79,9 @@ module Analyzer
           branch: @branch,
           batches: @batches
         ).run
+
+        # update version
+        Branch.update_version @branch
       end
     end
 

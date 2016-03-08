@@ -22,13 +22,12 @@ module Analyzer
 
 
           def run
-            puts ">>>>>>>> Running PHP Mess Detector <<<<<<<<"
+            Rails.logger.debug ">>>>>>>> Running PHP Mess Detector <<<<<<<<"
             @batches.each do |batch|
               result_xml = process_batch batch
               result_hash = @engine_formatter.format result_xml, @branch
               CodeIssue.store_results result_hash, @branch
             end
-            puts "------------------------------------------------"
           rescue => e
             Rails.logger.debug "Exception ---------------------" + e.message + " >>> " + e.backtrace.to_s
             raise

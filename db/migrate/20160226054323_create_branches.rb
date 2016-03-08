@@ -3,7 +3,10 @@ class CreateBranches < ActiveRecord::Migration
     create_table :branches do |t|
       t.string :name
       t.integer :is_analyzed, default: 0
+      t.integer :is_analyzer_processing, default: 0
       t.integer :is_activity_generated, default: 0
+      t.integer :is_activity_processing, default: 0
+      t.integer :current_version, default: 0
       t.integer :status, default: 1
       t.references :repository, index: true, foreign_key: true
 
