@@ -16,7 +16,7 @@ module Analyzer
             "Internal.Tokenizer.Exception"
           ].freeze
 
-          RESULT_FORMAT = '--report=checkstyle'
+          RESULT_CONFIG = '--report=checkstyle --standard=PSR1,PSR2'
 
           SNIFFS = {
             "Generic.ControlStructures.InlineControlStructure.NotAllowed" => 60000,

@@ -45,7 +45,7 @@ module Analyzer
 
 
           def execute_phpcs_command files
-            `phpcs --report=checkstyle #{files}`
+            `phpcs #{@engine_config::RESULT_CONFIG} #{files}`
           end
         end
       end
