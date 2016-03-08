@@ -2,6 +2,7 @@ class Branch < ActiveRecord::Base
 
   belongs_to :repository
   has_many :file_lists
+  has_many :code_issues
   has_many :contributors
   has_many :commits
 

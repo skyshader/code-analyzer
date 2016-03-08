@@ -36,6 +36,7 @@ ActiveRecord::Schema.define(version: 20160307092102) do
     t.integer  "weight",            limit: 4
     t.string   "engine",            limit: 255
     t.string   "engine_ruleset",    limit: 255
+    t.integer  "status",            limit: 4,     default: 1
     t.integer  "branch_id",         limit: 4,     default: 0, null: false
     t.integer  "issue_category_id", limit: 4
     t.integer  "file_list_id",      limit: 4
