@@ -16,7 +16,7 @@ module Analyzer
       php: [
         ::Analyzer::Engines::PHP::CodeSniffer::Engine,
         ::Analyzer::Engines::PHP::MessDetector::Engine
-      ]
+      ],
       javascript: [
         ::Analyzer::Engines::Javascript::Engine
       ],
