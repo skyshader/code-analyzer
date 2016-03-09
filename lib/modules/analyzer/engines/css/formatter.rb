@@ -49,9 +49,9 @@ module Analyzer
         end
 
         def get_issue_category(rule)
-          @config::CATEGORIES.each do |category, data|
+          @config::ALL_RULES.each do |category, data|
             if category === rule
-              return @issue_categories[data.first.to_sym]
+              return @issue_categories[data.to_sym]
             end
           end
           @issue_categories[:style]
@@ -67,10 +67,7 @@ module Analyzer
         end
 
         def get_source_weight(source)
-          @config::SNIFFS.each do |category, weight|
-            return weight if category === source
-          end
-          return @config::DEFAULT_POINT
+          @config::DEFAULT_POINT
         end
 
         def get_file_id(path)
