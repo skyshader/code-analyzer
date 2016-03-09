@@ -40,7 +40,7 @@ module Utility
     # group files based on extensions
     def grouped_file_batches
       file_groups = FileList.get_files_to_process(@branch)
-      group_by { |file| file.language }
+      .group_by { |file| file.language }
       create_batches file_groups
     end
 
