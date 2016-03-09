@@ -14,7 +14,7 @@ module Analyzer
     # available engines for languages
     ENGINES = {
       php: [
-        ::Analyzer::Engines::PHP::CodeSniffer::Engine
+        ::Analyzer::Engines::PHP::CodeSniffer::Engine,
         ::Analyzer::Engines::PHP::MessDetector::Engine
       ]
       javascript: [

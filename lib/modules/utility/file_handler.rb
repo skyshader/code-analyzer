@@ -40,7 +40,7 @@ module Utility
     # group files based on extensions
     def grouped_file_batches
       file_groups = FileList.get_files_to_process(@branch)
-      .group_by { |file| file.language }
+      group_by { |file| file.language }
       create_batches file_groups
     end
 
@@ -105,7 +105,7 @@ module Utility
 
     # separate files
     # that have changed,
-    # not changed and 
+    # not changed and
     # are newly added
     def generate_diff
       files = {
@@ -116,7 +116,7 @@ module Utility
 
       existing_phashes = files_to_phash @existing_files
       current_phashes = files_to_phash @all_files
-      
+
       @all_files.each do |file|
         files[:new] << file if !existing_phashes.include?(file[:phash])
         files[:unchanged] << file if existing_phashes.include?(file[:phash])
