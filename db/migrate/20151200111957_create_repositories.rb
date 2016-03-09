@@ -11,7 +11,7 @@ class CreateRepositories < ActiveRecord::Migration
       t.integer :is_private
       t.integer :is_setup, default: 0
       t.integer :project_id, index: true, null: false
-      t.integer :status
+      t.integer :status, default: 0
 
       t.timestamps null: false
     end

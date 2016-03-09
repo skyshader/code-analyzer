@@ -1,5 +1,5 @@
 module Analyzer
-  
+
   TaskRunnerFailureError = Class.new(StandardError)
 
   class TaskRunner

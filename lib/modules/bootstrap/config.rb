@@ -17,12 +17,13 @@ module Bootstrap
     def set_status process
       begin
         ActiveRecord::Base.connection_pool.with_connection do
+          @repository.update(is_setup: 0) if process === 'setup'
           @branch.update(is_activity_processing: 1) if process === 'activity'
           @branch.update(is_analyzer_processing: 1) if process === 'analyze'
         end
 
         yield
-        
+
         ActiveRecord::Base.connection_pool.with_connection do
           if process === 'setup'
             @repository.update(is_setup: 1)
@@ -84,12 +85,12 @@ module Bootstrap
           "Process[status]" => @branch.is_activity_generated
         })
       end
-      
+
       response = http.request(request)
       puts response.body.to_s
     rescue => e
       puts e.message
     end
-  
+
   end
 end
