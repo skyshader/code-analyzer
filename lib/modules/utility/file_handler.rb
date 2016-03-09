@@ -131,22 +131,22 @@ module Utility
 
     def create_batches files_groups
       batch = {}
-      current_batch_index = 0
-      current_batch_size = 0
       max_batch_size = 100000
-      files_groups.each do |files|
-        batch[files[0]] = []
-        files[1].each do |file|
+      files_groups.each do |key, files|
+        batch[key] = []
+        files.each do |file|
+          current_batch_index = 0
+          current_batch_size = 0
           if file.file_size <= 0
             next
           elsif file.file_size >= (max_batch_size - current_batch_size)
-            current_batch_index += 1 if !batch[files[0]][current_batch_index].nil?
-            batch[files[0]][current_batch_index] ||= []
-            batch[files[0]][current_batch_index] << file
+            current_batch_index += 1 if !batch[key][current_batch_index].nil?
+            batch[key][current_batch_index] ||= []
+            batch[key][current_batch_index] << file
             current_batch_size = file.file_size
           elsif file.file_size < (max_batch_size - current_batch_size)
-            batch[files[0]][current_batch_index] ||= []
-            batch[files[0]][current_batch_index] << file
+            batch[key][current_batch_index] ||= []
+            batch[key][current_batch_index] << file
             current_batch_size += file.file_size
           end
         end

@@ -14,11 +14,11 @@ module Analyzer
           IssueCategory.find_each do |category|
             @issue_categories[category.name.to_sym] = category.id
           end
-          file_list = {}
+          @file_list = {}
           @config = ::Analyzer::Engines::CSS::Config
         end #initialize
 
-        def xml_to_hash 
+        def xml_to_hash xml
           require 'nokogiri'
           file_array = Nokogiri::XML(xml).xpath("//file")
           errors = []
@@ -35,7 +35,7 @@ module Analyzer
                 engine: "csslint",
                 engine_ruleset: error["source"],
                 version: @branch.current_version + 1,
-                issue_category_id: get_issue_category,
+                issue_category_id: get_issue_category(error["source"]),
                 file_list_id: get_file_id(file["name"]),
                 branch_id: @branch.id
               }

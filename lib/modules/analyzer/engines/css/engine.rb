@@ -36,7 +36,7 @@ module Analyzer
             files = nil
             batch.each do |file|
               files = '' if !files
-              files += file[:full_path] + " "
+              files += file[:full_path] + " " if !(file[:full_path].end_with? ".min.css")
             end
             files.chomp!(' ')
             result = execute_phpcs_command(files)

@@ -120,7 +120,7 @@ ActiveRecord::Schema.define(version: 20160307092102) do
     t.integer  "is_private",     limit: 4
     t.integer  "is_setup",       limit: 4,     default: 0
     t.integer  "project_id",     limit: 4,                 null: false
-    t.integer  "status",         limit: 4
+    t.integer  "status",         limit: 4,     default: 0
     t.datetime "created_at",                               null: false
     t.datetime "updated_at",                               null: false
   end
