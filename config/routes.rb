@@ -4,7 +4,7 @@ Rails.application.routes.draw do
   get 'activity/repository/:repo_id/:type', to: 'main#repo_activity', as: :repo_activity
   get 'analyze/repository/:repo_id/:type', to: 'main#repo_analyze', as: :repo_analyze
   get 'process/repository/:repo_id/:type', to: 'main#repo_process', as: :repo_process
-  get 'generate/key/:username/:email/:host', to: 'main#key_generate', as: :generate_key
+  get 'ssh/generate/:username/:email/:host', to: 'main#ssh', as: :generate_key
   
   # new paths
   post 'repository/setup', to: 'main#setup', as: :setup_path
