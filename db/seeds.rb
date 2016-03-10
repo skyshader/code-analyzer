@@ -18,3 +18,11 @@ issue_category_data = [
 ]
 
 IssueCategory.create(issue_category_data)
+
+language_list_data = [
+  {name: 'php'},
+  {name: 'javascript'},
+  {name: 'css'}
+]
+
+SupportedLanguage.create(language_list_data)

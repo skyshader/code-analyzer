@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160307092102) do
+ActiveRecord::Schema.define(version: 20160310064122) do
 
   create_table "branches", force: :cascade do |t|
     t.string   "name",                   limit: 255
@@ -109,6 +109,14 @@ ActiveRecord::Schema.define(version: 20160307092102) do
     t.datetime "updated_at",                            null: false
   end
 
+  create_table "language_stats", force: :cascade do |t|
+    t.integer  "issue_count",           limit: 4
+    t.integer  "file_count",            limit: 4
+    t.integer  "supported_language_id", limit: 4
+    t.datetime "created_at",                      null: false
+    t.datetime "updated_at",                      null: false
+  end
+
   create_table "repositories", force: :cascade do |t|
     t.string   "username",       limit: 255
     t.string   "owner",          limit: 255
@@ -140,6 +148,12 @@ ActiveRecord::Schema.define(version: 20160307092102) do
   end
 
   add_index "request_logs", ["branch_id"], name: "index_request_logs_on_branch_id", using: :btree
+
+  create_table "supported_languages", force: :cascade do |t|
+    t.string   "name",       limit: 255
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
 
   add_foreign_key "branches", "repositories"
   add_foreign_key "commits", "branches"
