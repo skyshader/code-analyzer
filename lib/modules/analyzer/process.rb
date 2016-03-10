@@ -80,6 +80,9 @@ module Analyzer
           batches: @batches
         ).run
 
+        # generate stats
+        Stats::LanguageGenerator.new.count_issues
+
         # update version
         Branch.update_version @branch
       end
