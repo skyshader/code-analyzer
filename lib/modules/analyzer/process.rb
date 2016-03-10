@@ -81,7 +81,9 @@ module Analyzer
         ).run
 
         # generate stats
-        Stats::LanguageGenerator.new.count_issues
+        Stats::LanguageGenerator.new(
+          branch: @branch
+        ).generate
 
         # update version
         Branch.update_version @branch

@@ -2,19 +2,26 @@ module Stats
 
   class LanguageGenerator
 
-    def initialize
-      @issue_count = Hash.new(0)
+    def initialize(branch:)
+      @branch = branch
+      @language_stats = {}
     end
 
     def count_issues
-      CodeIssue.find_each do |issue|
-        @issue_count[issue.file_list.languag e] += 1
+
+      FileList.get_files_to_process(@branch).each do |file|
+        @language_stats[file.language.to_sym] = {
+          'issues_count' => 0,
+          'files_count' => 0
+        } if !@language_stats[file.language.to_sym]
+        @language_stats[file.language.to_sym]['issues_count'] += file.code_issues.where(version: @branch.current_version + 1).count
+        @language_stats[file.language.to_sym]['files_count'] += 1
       end
 
       puts "-----------------------------------------------------------------------"
       puts "-----------------------------------------------------------------------"
       puts "-----------------------------------------------------------------------"
-      puts "#{@issue_count}"
+      puts "#{@language_stats}"
       puts "-----------------------------------------------------------------------"
       puts "-----------------------------------------------------------------------"
       puts "-----------------------------------------------------------------------"
