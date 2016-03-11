@@ -28,7 +28,7 @@ module Analyzer
             file_array.each do |file|
               file.elements.each do |error|
                 errors << {
-                  file_path: file["name"],
+                  file_path: get_file(file["name"]).relative_path,
                   issue_text: error.inner_text,
                   begin_line: error["beginline"].to_i,
                   end_line: error["endline"].to_i,
@@ -39,7 +39,7 @@ module Analyzer
                   engine_ruleset: error["rule"],
                   version: @branch.current_version + 1,
                   issue_category_id: get_issue_category(error["rule"]),
-                  file_list_id: get_file_id(file["name"]),
+                  file_list_id: get_file(file["name"]).id,
                   branch_id: @branch.id
                 }
               end
@@ -81,8 +81,8 @@ module Analyzer
           end
 
 
-          def get_file_id(path)
-            @file_list[path.to_sym] ||= FileList.find_by(full_path: path).id
+          def get_file(path)
+              @file_list[path.to_sym] ||= FileList.find_by(full_path: path)
           end
 
         end

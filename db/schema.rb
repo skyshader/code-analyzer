@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160310052050) do
+ActiveRecord::Schema.define(version: 20160310064154) do
 
   create_table "branches", force: :cascade do |t|
     t.string   "name",            limit: 255
@@ -23,6 +23,19 @@ ActiveRecord::Schema.define(version: 20160310052050) do
   end
 
   add_index "branches", ["repository_id"], name: "index_branches_on_repository_id", using: :btree
+
+  create_table "category_stats", force: :cascade do |t|
+    t.integer  "issue_count",       limit: 4
+    t.integer  "file_count",        limit: 4
+    t.integer  "analysis_version",  limit: 4
+    t.integer  "branch_id",         limit: 4
+    t.integer  "issue_category_id", limit: 4
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+  end
+
+  add_index "category_stats", ["branch_id"], name: "index_category_stats_on_branch_id", using: :btree
+  add_index "category_stats", ["issue_category_id"], name: "index_category_stats_on_issue_category_id", using: :btree
 
   create_table "code_issues", id: false, force: :cascade do |t|
     t.integer  "id",                limit: 4,                 null: false
@@ -105,6 +118,14 @@ ActiveRecord::Schema.define(version: 20160310052050) do
     t.datetime "updated_at",                            null: false
   end
 
+  create_table "language_stats", force: :cascade do |t|
+    t.integer  "issue_count",           limit: 4
+    t.integer  "file_count",            limit: 4
+    t.integer  "supported_language_id", limit: 4
+    t.datetime "created_at",                      null: false
+    t.datetime "updated_at",                      null: false
+  end
+
   create_table "repositories", force: :cascade do |t|
     t.string   "username",       limit: 255
     t.string   "owner",          limit: 255
@@ -141,7 +162,15 @@ ActiveRecord::Schema.define(version: 20160310052050) do
   add_index "request_logs", ["branch_id"], name: "index_request_logs_on_branch_id", using: :btree
   add_index "request_logs", ["repository_id"], name: "index_request_logs_on_repository_id", using: :btree
 
+  create_table "supported_languages", force: :cascade do |t|
+    t.string   "name",       limit: 255
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
+
   add_foreign_key "branches", "repositories"
+  add_foreign_key "category_stats", "branches"
+  add_foreign_key "category_stats", "issue_categories"
   add_foreign_key "commits", "branches"
   add_foreign_key "commits", "contributors"
   add_foreign_key "contributors", "branches"

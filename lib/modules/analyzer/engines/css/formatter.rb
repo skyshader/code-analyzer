@@ -14,18 +14,18 @@ module Analyzer
           IssueCategory.find_each do |category|
             @issue_categories[category.name.to_sym] = category.id
           end
-          file_list = {}
+          @file_list = {}
           @config = ::Analyzer::Engines::CSS::Config
         end #initialize
 
-        def xml_to_hash 
+        def xml_to_hash xml
           require 'nokogiri'
           file_array = Nokogiri::XML(xml).xpath("//file")
           errors = []
           file_array.each do |file|
             file.elements.each do |error|
               errors<< {
-                file_path: file["name"],
+                file_path: get_file(file["name"]).relative_path,
                 issue_text: error["message"],
                 begin_line: error["line"].to_i,
                 end_line: error["line"].to_i,
@@ -35,8 +35,8 @@ module Analyzer
                 engine: "csslint",
                 engine_ruleset: error["source"],
                 version: @branch.current_version + 1,
-                issue_category_id: get_issue_category,
-                file_list_id: get_file_id(file["name"]),
+                issue_category_id: get_issue_category(error["source"]),
+                file_list_id: get_file(file["name"]).id,
                 branch_id: @branch.id
               }
             end
@@ -70,8 +70,8 @@ module Analyzer
           @config::DEFAULT_POINT
         end
 
-        def get_file_id(path)
-          @file_list[path.to_sym] ||= FileList.find_by(full_path: path).id
+        def get_file(path)
+          @file_list[path.to_sym] ||= FileList.find_by(full_path: path)
         end
 
 

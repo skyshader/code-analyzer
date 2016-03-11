@@ -25,7 +25,7 @@ module Analyzer
             file_array.each do |file|
                 file.elements.each do |error|
                     errors<< {
-                        file_path: file["name"],
+                        file_path: get_file(file["name"]).relative_path,
                         issue_text: error["message"],
                         begin_line: error["line"].to_i,
                         end_line: error["line"].to_i,
@@ -35,8 +35,8 @@ module Analyzer
                         engine: "eslint",
                         engine_ruleset: error["source"],
                         version: @branch.current_version + 1,
-                        issue_category_id: "style",
-                        file_list_id: get_file_id(file["name"]),
+                        issue_category_id: get_issue_category(error["source"]),
+                        file_list_id: get_file(file["name"]).id,
                         branch_id: @branch.id
                     }
                 end
@@ -57,15 +57,24 @@ module Analyzer
             code
         end
 
+        def get_issue_category(rule)
+            @config::CATEGORY.each do |category, data|
+              if category === rule
+                return @issue_categories[data.first.to_sym]
+              end
+            end
+            @issue_categories[:style]
+          end
+
         def get_source_weight(source)
-          @config::CATEGORY.each do |category, weight|
-            return weight if category === source
+          @config::CATEGORY.each do |category, data|
+            return data.last if category === source
           end
           return @config::DEFAULT_POINT
         end
 
-        def get_file_id(path)
-          @file_list[path.to_sym] ||= FileList.find_by(full_path: path).id
+        def get_file(path)
+          @file_list[path.to_sym] ||= FileList.find_by(full_path: path)
         end
 
       end

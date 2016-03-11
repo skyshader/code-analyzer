@@ -3,13 +3,13 @@
 # This class will be used to do initial processing
 # like detecting languages used in repo
 # and generating list of files to be processed
-# with their respective engines 
+# with their respective engines
 
 module Analyzer
   class Process
 
     attr_reader :repository, :branch, :directory, :batches
-  
+
     def initialize(repository:, branch:)
       @repository = repository
       @branch = branch
@@ -28,10 +28,10 @@ module Analyzer
       end
 
       return {
-        success: false, 
+        success: false,
         message: "The repository you've requested does not exist!"
       } if repository.nil?
-      
+
       new(
         repository: repository,
         branch: branch
@@ -80,6 +80,11 @@ module Analyzer
           branch: @branch,
           batches: @batches
         ).run
+
+        #generate stats
+        Stats::ProcessStats.new(
+          branch: @branch
+        ).generate
 
         # update version
         Branch.update_version @branch

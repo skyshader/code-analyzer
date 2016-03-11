@@ -10,7 +10,7 @@ module Analyzer
 
         DEFAULT_POINT = 50000.freeze
 
-        RESULT_CONFIG = '--format=checkstyle-xml --exclude-list=.min.css --ignore=ids,order-alphabetical,important,font-faces,import,regex-selectors,universal-selector,floats,font-sizes,outline-none,qualified-headings,unique-headings'
+        RESULT_CONFIG = '--format=checkstyle-xml --exclude-list=*.min.css --ignore=ids,order-alphabetical,important,font-faces,import,regex-selectors,universal-selector,floats,font-sizes,outline-none,qualified-headings,unique-headings'
 
         ALL_RULES = {
           "net.csslint.adjoining-classes" => "compatibility",

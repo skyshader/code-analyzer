@@ -37,7 +37,7 @@ module Analyzer
             files = nil
             batch.each do |file|
                 files = '' if !files
-                files += file[:full_path] + " "
+                files += file[:full_path] + " " if !(file[:full_path].end_with? ".min.js")
             end
             files.chomp!(' ')
             result = execute_eslint_command(files)
