@@ -9,6 +9,8 @@ module Stats
 
             puts language_stats
             puts category_stats
+
+            #LanguageStat.create(language_stats)
         end
     end
 end
