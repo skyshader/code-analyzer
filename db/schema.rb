@@ -91,24 +91,25 @@ ActiveRecord::Schema.define(version: 20160310064154) do
   add_index "contributors", ["branch_id"], name: "index_contributors_on_branch_id", using: :btree
 
   create_table "file_lists", force: :cascade do |t|
-    t.string   "name",          limit: 255
-    t.integer  "is_file",       limit: 4
-    t.string   "extension",     limit: 255
-    t.string   "language",      limit: 255
-    t.integer  "file_size",     limit: 4
-    t.string   "phash",         limit: 255
-    t.string   "fhash",         limit: 255
-    t.string   "relative_path", limit: 255
-    t.string   "parent_path",   limit: 255
-    t.text     "full_path",     limit: 65535
-    t.integer  "is_excluded",   limit: 4,     default: 0
-    t.integer  "status",        limit: 4,     default: 1
-    t.integer  "branch_id",     limit: 4
-    t.datetime "created_at",                              null: false
-    t.datetime "updated_at",                              null: false
+    t.string   "name",                  limit: 255
+    t.integer  "is_file",               limit: 4
+    t.string   "extension",             limit: 255
+    t.integer  "file_size",             limit: 4
+    t.string   "phash",                 limit: 255
+    t.string   "fhash",                 limit: 255
+    t.string   "relative_path",         limit: 255
+    t.string   "parent_path",           limit: 255
+    t.text     "full_path",             limit: 65535
+    t.integer  "is_excluded",           limit: 4,     default: 0
+    t.integer  "status",                limit: 4,     default: 1
+    t.integer  "branch_id",             limit: 4
+    t.integer  "supported_language_id", limit: 4
+    t.datetime "created_at",                                      null: false
+    t.datetime "updated_at",                                      null: false
   end
 
   add_index "file_lists", ["branch_id"], name: "index_file_lists_on_branch_id", using: :btree
+  add_index "file_lists", ["supported_language_id"], name: "index_file_lists_on_supported_language_id", using: :btree
 
   create_table "issue_categories", force: :cascade do |t|
     t.string   "name",        limit: 255
@@ -119,12 +120,16 @@ ActiveRecord::Schema.define(version: 20160310064154) do
   end
 
   create_table "language_stats", force: :cascade do |t|
-    t.integer  "issue_count",           limit: 4
-    t.integer  "file_count",            limit: 4
+    t.integer  "issues_count",          limit: 4
+    t.integer  "files_count",           limit: 4
     t.integer  "supported_language_id", limit: 4
+    t.integer  "branch_id",             limit: 4
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
   end
+
+  add_index "language_stats", ["branch_id"], name: "index_language_stats_on_branch_id", using: :btree
+  add_index "language_stats", ["supported_language_id"], name: "index_language_stats_on_supported_language_id", using: :btree
 
   create_table "repositories", force: :cascade do |t|
     t.string   "username",       limit: 255
@@ -175,6 +180,9 @@ ActiveRecord::Schema.define(version: 20160310064154) do
   add_foreign_key "commits", "contributors"
   add_foreign_key "contributors", "branches"
   add_foreign_key "file_lists", "branches"
+  add_foreign_key "file_lists", "supported_languages"
+  add_foreign_key "language_stats", "branches"
+  add_foreign_key "language_stats", "supported_languages"
   add_foreign_key "request_logs", "branches"
   add_foreign_key "request_logs", "repositories"
 end

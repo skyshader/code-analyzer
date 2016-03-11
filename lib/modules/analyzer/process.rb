@@ -82,9 +82,9 @@ module Analyzer
         ).run
 
         #generate stats
-        Stats::ProcessStats.new(
+        Stats::Process.new(
           branch: @branch
-        ).generate
+        ).run
 
         # update version
         Branch.update_version @branch

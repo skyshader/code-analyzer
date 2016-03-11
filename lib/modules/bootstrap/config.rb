@@ -8,7 +8,6 @@ module Bootstrap
 
     # initialize new config with required objects
     def initialize(repository:, branch:, directory:, action:)
-      puts "Initialized config bootstrap ==--==-=-"
       @repository = repository
       @branch = branch
       @directory = directory

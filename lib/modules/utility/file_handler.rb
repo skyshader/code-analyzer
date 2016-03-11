@@ -11,6 +11,7 @@ module Utility
       @directory = repository.directory
       @branch = branch
       @analyzer_config = Analyzer::BaseConfig.new
+      @languages = {}
     end
 
 
@@ -40,7 +41,7 @@ module Utility
     # group files based on extensions
     def grouped_file_batches
       file_groups = FileList.get_files_to_process(@branch)
-      .group_by { |file| file.language }
+      .group_by { |file| get_language(file) }
       create_batches file_groups
     end
 
@@ -71,29 +72,39 @@ module Utility
         name: File.basename(path),
         is_file:  is_directory ? 0 : 1,
         extension: is_directory ? nil : File.extname(path),
-        language: is_directory ? nil : file_language(File.extname(path)),
         file_size: File.size(path).to_s,
         phash: Digest::SHA256.hexdigest(path),
         fhash: is_directory ? nil : Digest::SHA256.file(path).hexdigest,
         relative_path: project_relative_path(path),
         parent_path: parent_path(path),
         full_path: path,
+        supported_language_id: is_directory ? nil : file_language(File.extname(path)),
         branch: @branch
       }
     end
 
+    
     def file_language ext
       language = nil
       Analyzer::BaseConfig::LANGUAGES_SUPPORTED.each do |k, v|
         language = k if v.include?(ext)
       end
-      language
+      return language unless language
+
+      @languages[language] ||= SupportedLanguage.where(name: language).first.id
     end
+
+    
+    def get_language file
+      @languages[file.supported_language_id] ||= file.supported_language.name
+    end
+
 
     def project_relative_path full_path
       relative_path = full_path.gsub(@directory.to_s, '')
     end
 
+    
     def parent_path full_path
       relative_path = project_relative_path(full_path)
       return nil if relative_path.eql? '/'

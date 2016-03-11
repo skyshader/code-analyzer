@@ -56,7 +56,6 @@ module Bootstrap
     
     # get object of bootstrap config
     def get_bootstrap_config
-      puts "initializing config <<<"
       @config ||= Bootstrap::Config.new(
         repository: @repository,
         branch: @branch,

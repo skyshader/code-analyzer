@@ -2,6 +2,7 @@ class FileList < ActiveRecord::Base
 
   has_many :code_issues
   belongs_to :branch
+  belongs_to :supported_language
 
 
   # create a new file listing as per directory structure

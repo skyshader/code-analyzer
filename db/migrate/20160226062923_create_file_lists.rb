@@ -4,7 +4,6 @@ class CreateFileLists < ActiveRecord::Migration
       t.string :name
       t.integer :is_file
       t.string :extension
-      t.string :language
       t.integer :file_size
       t.string :phash
       t.string :fhash
@@ -15,6 +14,7 @@ class CreateFileLists < ActiveRecord::Migration
       t.integer :status, default: 1
 
       t.references :branch, index: true, foreign_key: true
+      t.references :supported_language, index: true, foreign_key: true
 
       t.timestamps null: false
     end
@@ -22,6 +22,7 @@ class CreateFileLists < ActiveRecord::Migration
 
   def down
     remove_foreign_key :file_lists, column: :branch_id
+    remove_foreign_key :file_lists, column: :supported_language_id
     drop_table :file_lists
   end
 end
