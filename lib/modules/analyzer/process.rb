@@ -80,7 +80,7 @@ module Analyzer
           batches: @batches
         ).run
 
-        # generate stats
+        #generate stats
         Stats::ProcessStats.new(
           branch: @branch
         ).generate

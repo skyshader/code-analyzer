@@ -4,8 +4,11 @@ module Stats
             @branch = branch
         end
         def generate
-            Stats::LanguageGenerator.new(branch: @branch).count_issues
-            Stats::CategoryGenerator.new(branch: @branch).count_issues
+            language_stats = Stats::LanguageGenerator.new(branch: @branch).count_issues
+            category_stats = Stats::CategoryGenerator.new(branch: @branch).count_issues
+
+            puts language_stats
+            puts category_stats
         end
     end
 end
