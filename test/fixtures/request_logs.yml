@@ -1,0 +1,23 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  request_type: MyString
+  is_waiting: 1
+  is_active: 1
+  is_complete: 1
+  is_error: 1
+  error_message: MyText
+  error_trace: MyText
+  branch_id: 
+  repository_id: 
+
+two:
+  request_type: MyString
+  is_waiting: 1
+  is_active: 1
+  is_complete: 1
+  is_error: 1
+  error_message: MyText
+  error_trace: MyText
+  branch_id: 
+  repository_id: 
