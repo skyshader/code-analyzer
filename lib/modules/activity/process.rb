@@ -10,6 +10,7 @@ module Activity
       @repository = repository
       @branch = branch
       @directory = repository.directory
+      @action = 'activity'
     end
 
 
@@ -42,7 +43,7 @@ module Activity
     # set status while generating activity
     def generate
       Thread.new do
-        get_bootstrap_config.set_status('activity') do
+        get_bootstrap_config.set_status do
           generate_activity
         end
       end
@@ -95,7 +96,8 @@ module Activity
       @config ||= Bootstrap::Config.new(
         repository: @repository,
         branch: @branch,
-        directory: @directory
+        directory: @directory,
+        action: 'activity'
       )
     end
   

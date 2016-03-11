@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  root 'main#test'
+  root 'main#index'
   
   get 'activity/repository/:repo_id/:type', to: 'main#repo_activity', as: :repo_activity
   get 'analyze/repository/:repo_id/:type', to: 'main#repo_analyze', as: :repo_analyze

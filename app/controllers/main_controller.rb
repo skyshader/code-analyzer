@@ -1,9 +1,9 @@
 class MainController < ApplicationController
-  def index
-  end
+  
+  before_action :queue_request, only: [:analyze, :activity]
 
   # for testing purposes
-  def test
+  def index
     # render :text => Rails.configuration.x.notify_url, :layout => true
     render :text => "Write code to test here!", :layout => true
   end
@@ -11,7 +11,6 @@ class MainController < ApplicationController
 
   # setup repository, create essential entries and configuration
   def setup
-    puts params
     data = params[:repository].symbolize_keys
     ActiveRecord::Base.connection_pool.with_connection do
       Repository.transaction do
@@ -55,6 +54,13 @@ class MainController < ApplicationController
   rescue => e
     @data = {'success'=>false, 'message'=>e.to_s}
     render json: @data
+  end
+
+
+  def queue_request
+    data = params[:repository].symbolize_keys
+    result = Utility::RequestHandler.run(action_name, data)
+    render json: result if result[:status] === 2
   end
 
 end

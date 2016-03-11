@@ -14,6 +14,7 @@ module Analyzer
       @repository = repository
       @branch = branch
       @directory = repository.directory
+      @action = 'analyze'
     end
 
 
@@ -41,7 +42,7 @@ module Analyzer
     # transfer setup to a thread
     def setup
       Thread.new do
-        get_bootstrap_config.set_status('analyze') do
+        get_bootstrap_config.set_status do
           run_analyzer
         end
       end
@@ -100,7 +101,8 @@ module Analyzer
       @config ||= Bootstrap::Config.new(
         repository: @repository,
         branch: @branch,
-        directory: @directory
+        directory: @directory,
+        action: @action
       )
     end
 

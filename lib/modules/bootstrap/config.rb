@@ -4,49 +4,36 @@ module Bootstrap
 
   class Config
 
-    attr_reader :repository, :branch, :directory
+    attr_reader :repository, :branch, :directory, :action, :request
 
     # initialize new config with required objects
-    def initialize(repository:, branch:, directory:)
+    def initialize(repository:, branch:, directory:, action:)
+      puts "Initialized config bootstrap ==--==-=-"
       @repository = repository
       @branch = branch
       @directory = directory
+      @action = action
+      @request = RequestLog.current_log(
+        repository: repository,
+        branch: branch,
+        action: action
+      )
     end
 
     # new method for updating status
-    def set_status process
+    def set_status
       begin
-        ActiveRecord::Base.connection_pool.with_connection do
-          @repository.update(is_setup: 0) if process === 'setup'
-          @branch.update(is_activity_processing: 1) if process === 'activity'
-          @branch.update(is_analyzer_processing: 1) if process === 'analyze'
-        end
-
+        set_before_status
         yield
-
-        ActiveRecord::Base.connection_pool.with_connection do
-          if process === 'setup'
-            @repository.update(is_setup: 1)
-          elsif process === 'activity'
-            @branch.update(is_activity_generated: 1, is_activity_processing: 0)
-          elsif process === 'analyze'
-            @branch.update(is_analyzed: 1, is_analyzer_processing: 0)
-          end
-        end
+        set_success_status
       rescue => e
         Rails.logger.debug "Exception ---------------------" + e.message + " >>> " + e.backtrace.to_s
-        ActiveRecord::Base.connection_pool.with_connection do
-          if process === 'setup'
-            @repository.update(is_setup: 0)
-          elsif process === 'activity'
-            @branch.update(is_activity_generated: 0, is_activity_processing: 0)
-          elsif process === 'analyze'
-            @branch.update(is_analyzed: 0, is_analyzer_processing: 0)
-          end
-        end
+        set_failure_status
       ensure
-        puts "------- #{process} repository complete! -------"
-        # request_callback(process)
+        puts "------- #{@action} repository complete! -------"
+        @request.update(status: 0)
+        # request_callback
+        initiate_next_queued_process
       end
     end
 
@@ -62,26 +49,77 @@ module Bootstrap
     end
 
 
+    def set_before_status
+      ActiveRecord::Base.connection_pool.with_connection do
+        @repository.update(is_setup: 0) if @action === 'setup'
+        @request.update(is_waiting: 0, is_active: 1) if @action === 'activity'
+        @request.update(is_waiting: 0, is_active: 1) if @action === 'analyze'
+      end
+    end
+
+
+    def set_success_status
+      ActiveRecord::Base.connection_pool.with_connection do
+        if @action === 'setup'
+          @repository.update(is_setup: 1)
+        elsif @action === 'activity'
+          @request.update(is_active: 0, is_complete: 1)
+        elsif @action === 'analyze'
+          @request.update(is_active: 0, is_complete: 1)
+        end
+      end
+    end
+
+
+    def set_failure_status
+      ActiveRecord::Base.connection_pool.with_connection do
+        if @action === 'setup'
+          @repository.update(is_setup: 0)
+        elsif @action === 'activity'
+          @request.update(is_active: 0, is_error: 1, error_message: e.message, error_trace: e.backtrace.to_s)
+        elsif @action === 'analyze'
+          @request.update(is_active: 0, is_error: 1, error_message: e.message, error_trace: e.backtrace.to_s)
+        end
+      end
+    end
+
+
+    def initiate_next_queued_process
+      request = RequestLog.next_queued_request
+      if request
+        Rails.logger.debug "Processing next request : " + request.inspect
+        Analyzer::Process.new(
+          repository: request.repository,
+          branch: request.branch
+        ).setup if request.request_type === 'analyze'
+        Activity.Process.new(
+          repository: repository,
+          branch: branch
+        ).generate if request.request_type === 'activity'
+      end
+    end
+
+
     # request back with status
-    def request_callback process
+    def request_callback
       uri = URI.parse(Rails.configuration.x.notify_url)
       http = Net::HTTP.new(uri.host, uri.port)
       request = Net::HTTP::Post.new(uri.request_uri)
 
-      if process === 'setup'
+      if @action === 'setup'
         request.set_form_data({
           "Process[project_id]" => @repository.project_id,
           "Process[repository]" => @repository.ssh_url,
-          "Process[type]" => process,
+          "Process[type]" => @action,
           "Process[status]" => @repository.is_setup
         })
-      elsif process === 'analyzer'
+      elsif @action === 'analyze'
         # some code
-      elsif process === 'activity'
+      elsif @action === 'activity'
         request.set_form_data({
           "Process[project_id]" => @repository.project_id,
           "Process[repository]" => @repository.ssh_url,
-          "Process[type]" => process,
+          "Process[type]" => @action,
           "Process[status]" => @branch.is_activity_generated
         })
       end
