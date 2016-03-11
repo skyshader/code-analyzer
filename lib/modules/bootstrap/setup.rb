@@ -13,12 +13,13 @@ module Bootstrap
       @repository = repository
       @branch = branch
       @directory = repo_path
+      @action = 'setup'
     end
 
 
     def configure
       Thread.new do
-        get_bootstrap_config.set_status('setup') do
+        get_bootstrap_config.set_status do
           setup_repository
         end
       end
@@ -55,10 +56,12 @@ module Bootstrap
     
     # get object of bootstrap config
     def get_bootstrap_config
+      puts "initializing config <<<"
       @config ||= Bootstrap::Config.new(
         repository: @repository,
         branch: @branch,
-        directory: @directory
+        directory: @directory,
+        action: @action
       )
     end
 

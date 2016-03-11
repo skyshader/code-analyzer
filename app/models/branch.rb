@@ -5,6 +5,7 @@ class Branch < ActiveRecord::Base
   has_many :code_issues
   has_many :contributors
   has_many :commits
+  has_many :request_logs
 
   # create a branch if it doesn't exist
   def self.setup_branch repository

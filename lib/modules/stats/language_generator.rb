@@ -9,7 +9,6 @@ module Stats
     end
 
     def count_issues
-
       FileList.get_files_to_process(@branch).each do |file|
         @stats_temp[file.language.to_sym] = {
           'issues_count' => 0,
@@ -36,6 +35,5 @@ module Stats
 
       @stats
     end
-
   end
 end

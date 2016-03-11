@@ -14,29 +14,28 @@
 ActiveRecord::Schema.define(version: 20160310064154) do
 
   create_table "branches", force: :cascade do |t|
-    t.string   "name",                   limit: 255
-    t.integer  "is_analyzed",            limit: 4,   default: 0
-    t.integer  "is_analyzer_processing", limit: 4,   default: 0
-    t.integer  "is_activity_generated",  limit: 4,   default: 0
-    t.integer  "is_activity_processing", limit: 4,   default: 0
-    t.integer  "current_version",        limit: 4,   default: 0
-    t.integer  "status",                 limit: 4,   default: 1
-    t.integer  "repository_id",          limit: 4
-    t.datetime "created_at",                                     null: false
-    t.datetime "updated_at",                                     null: false
+    t.string   "name",            limit: 255
+    t.integer  "current_version", limit: 4,   default: 0
+    t.integer  "status",          limit: 4,   default: 1
+    t.integer  "repository_id",   limit: 4
+    t.datetime "created_at",                              null: false
+    t.datetime "updated_at",                              null: false
   end
 
   add_index "branches", ["repository_id"], name: "index_branches_on_repository_id", using: :btree
 
   create_table "category_stats", force: :cascade do |t|
-    t.integer  "category_id",      limit: 4
-    t.integer  "issue_count",      limit: 4
-    t.integer  "file_count",       limit: 4
-    t.integer  "analysis_version", limit: 4
-    t.integer  "branch_id",        limit: 4
-    t.datetime "created_at",                 null: false
-    t.datetime "updated_at",                 null: false
+    t.integer  "issue_count",       limit: 4
+    t.integer  "file_count",        limit: 4
+    t.integer  "analysis_version",  limit: 4
+    t.integer  "branch_id",         limit: 4
+    t.integer  "issue_category_id", limit: 4
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
   end
+
+  add_index "category_stats", ["branch_id"], name: "index_category_stats_on_branch_id", using: :btree
+  add_index "category_stats", ["issue_category_id"], name: "index_category_stats_on_issue_category_id", using: :btree
 
   create_table "code_issues", id: false, force: :cascade do |t|
     t.integer  "id",                limit: 4,                 null: false
@@ -146,18 +145,22 @@ ActiveRecord::Schema.define(version: 20160310064154) do
   add_index "repositories", ["project_id"], name: "index_repositories_on_project_id", using: :btree
 
   create_table "request_logs", force: :cascade do |t|
-    t.string   "process_type",   limit: 255
-    t.string   "request_type",   limit: 255
-    t.integer  "success_status", limit: 4,     default: 0
-    t.integer  "is_error",       limit: 4,     default: 0
-    t.integer  "error_status",   limit: 4,     default: 0
-    t.text     "error_message",  limit: 65535
-    t.integer  "branch_id",      limit: 4
-    t.datetime "created_at",                               null: false
-    t.datetime "updated_at",                               null: false
+    t.string   "request_type",  limit: 255
+    t.integer  "is_waiting",    limit: 4,     default: 0
+    t.integer  "is_active",     limit: 4,     default: 0
+    t.integer  "is_complete",   limit: 4,     default: 0
+    t.integer  "is_error",      limit: 4,     default: 0
+    t.text     "error_message", limit: 65535
+    t.text     "error_trace",   limit: 65535
+    t.integer  "branch_id",     limit: 4
+    t.integer  "repository_id", limit: 4
+    t.integer  "status",        limit: 4,     default: 1
+    t.datetime "created_at",                              null: false
+    t.datetime "updated_at",                              null: false
   end
 
   add_index "request_logs", ["branch_id"], name: "index_request_logs_on_branch_id", using: :btree
+  add_index "request_logs", ["repository_id"], name: "index_request_logs_on_repository_id", using: :btree
 
   create_table "supported_languages", force: :cascade do |t|
     t.string   "name",       limit: 255
@@ -166,9 +169,12 @@ ActiveRecord::Schema.define(version: 20160310064154) do
   end
 
   add_foreign_key "branches", "repositories"
+  add_foreign_key "category_stats", "branches"
+  add_foreign_key "category_stats", "issue_categories"
   add_foreign_key "commits", "branches"
   add_foreign_key "commits", "contributors"
   add_foreign_key "contributors", "branches"
   add_foreign_key "file_lists", "branches"
   add_foreign_key "request_logs", "branches"
+  add_foreign_key "request_logs", "repositories"
 end
