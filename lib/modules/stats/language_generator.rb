@@ -4,19 +4,27 @@ module Stats
 
     def initialize(branch:)
       @branch = branch
-      @issue_count = Hash.new(0)
+      @language_stats = {}
     end
 
     def count_issues
-      CodeIssue.where(version: @branch.current_version+1).find_each do |issue|
-        @issue_count[issue.file_list.language] += 1
+
+      FileList.get_files_to_process(@branch).each do |file|
+        @language_stats[file.language.to_sym] = {
+          'issues_count' => 0,
+          'files_count' => 0
+        } if !@language_stats[file.language.to_sym]
+        @language_stats[file.language.to_sym]['issues_count'] += file.code_issues.where(version: @branch.current_version + 1).count
+        @language_stats[file.language.to_sym]['files_count'] += 1
       end
 
-      puts "------------------------------------------------------"
-      puts "Language stats"
-      puts "------------------------------------------------------"
-      puts "#{@issue_count}"
-    end
+      puts "-----------------------------------------------------------------------"
+      puts "-----------------------------------------------------------------------"
+      puts "-----------------------------------------------------------------------"
+      puts "#{@language_stats}"
+      puts "-----------------------------------------------------------------------"
+      puts "-----------------------------------------------------------------------"
+      puts "-----------------------------------------------------------------------"
 
   end
 end
