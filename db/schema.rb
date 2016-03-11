@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160310064122) do
+ActiveRecord::Schema.define(version: 20160310064154) do
 
   create_table "branches", force: :cascade do |t|
     t.string   "name",                   limit: 255
@@ -27,6 +27,16 @@ ActiveRecord::Schema.define(version: 20160310064122) do
   end
 
   add_index "branches", ["repository_id"], name: "index_branches_on_repository_id", using: :btree
+
+  create_table "category_stats", force: :cascade do |t|
+    t.integer  "category_id",      limit: 4
+    t.integer  "issue_count",      limit: 4
+    t.integer  "file_count",       limit: 4
+    t.integer  "analysis_version", limit: 4
+    t.integer  "branch_id",        limit: 4
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
+  end
 
   create_table "code_issues", id: false, force: :cascade do |t|
     t.integer  "id",                limit: 4,                 null: false

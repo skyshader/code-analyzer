@@ -35,7 +35,7 @@ module Analyzer
                         engine: "eslint",
                         engine_ruleset: error["source"],
                         version: @branch.current_version + 1,
-                        issue_category_id: "style",
+                        issue_category_id: get_issue_category(error["source"]),
                         file_list_id: get_file(file["name"]).id,
                         branch_id: @branch.id
                     }
@@ -57,9 +57,18 @@ module Analyzer
             code
         end
 
+        def get_issue_category(rule)
+            @config::CATEGORY.each do |category, data|
+              if category === rule
+                return @issue_categories[data.first.to_sym]
+              end
+            end
+            @issue_categories[:style]
+          end
+
         def get_source_weight(source)
-          @config::CATEGORY.each do |category, weight|
-            return weight if category === source
+          @config::CATEGORY.each do |category, data|
+            return data.last if category === source
           end
           return @config::DEFAULT_POINT
         end
