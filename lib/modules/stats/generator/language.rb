@@ -25,6 +25,9 @@ module Stats
       end
 
 
+      ##
+      # Check if this language's stat exists or not
+      #
       def does_stat_exists? language_id
         @language_stats.any? { |h| h[:supported_language_id] === language_id }
       end
@@ -38,6 +41,10 @@ module Stats
       end
 
 
+      ##
+      # Create a new hash entry if stat does not exist for this language
+      # and return the hash entry for that language
+      #
       def get_stat language
         @language_stats << {
           supported_language_id: language.id,

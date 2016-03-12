@@ -9,6 +9,9 @@ module Stats
       end
 
 
+      ##
+      # Calculate stats on the basis of issue categories
+      #
       def generate
         IssueCategory.find_each do |category|
           stat = {
@@ -27,6 +30,9 @@ module Stats
       end
 
 
+      ##
+      # Get total unique files count for a certain issue category
+      #
       def get_file_count issues
         files = []
         issues.each do |issue|
