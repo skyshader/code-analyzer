@@ -1,11 +1,11 @@
 class CreateCategoryStats < ActiveRecord::Migration
   def up
     create_table :category_stats do |t|
-      t.integer :issue_count
-      t.integer :file_count
-      t.integer :analysis_version
-      t.references :branch,  index: true, foreign_key: true
+      t.integer :issues_count
+      t.integer :files_count
+      t.integer :version
       t.references :issue_category, index: true, foreign_key: true
+      t.references :branch,  index: true, foreign_key: true
 
       t.timestamps null: false
 

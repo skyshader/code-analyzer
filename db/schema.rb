@@ -25,11 +25,11 @@ ActiveRecord::Schema.define(version: 20160310064154) do
   add_index "branches", ["repository_id"], name: "index_branches_on_repository_id", using: :btree
 
   create_table "category_stats", force: :cascade do |t|
-    t.integer  "issue_count",       limit: 4
-    t.integer  "file_count",        limit: 4
-    t.integer  "analysis_version",  limit: 4
-    t.integer  "branch_id",         limit: 4
+    t.integer  "issues_count",      limit: 4
+    t.integer  "files_count",       limit: 4
+    t.integer  "version",           limit: 4
     t.integer  "issue_category_id", limit: 4
+    t.integer  "branch_id",         limit: 4
     t.datetime "created_at",                  null: false
     t.datetime "updated_at",                  null: false
   end
@@ -122,6 +122,7 @@ ActiveRecord::Schema.define(version: 20160310064154) do
   create_table "language_stats", force: :cascade do |t|
     t.integer  "issues_count",          limit: 4
     t.integer  "files_count",           limit: 4
+    t.integer  "version",               limit: 4
     t.integer  "supported_language_id", limit: 4
     t.integer  "branch_id",             limit: 4
     t.datetime "created_at",                      null: false
