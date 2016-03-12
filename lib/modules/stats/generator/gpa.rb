@@ -23,8 +23,8 @@ module Stats
             current_range = issue[:begin_line]..issue[:end_line]
             issue_ranges << current_range if issue_ranges.size == 0
             issue_ranges = replace_dup_ranges issue_ranges, current_range
-            puts issue_ranges
           end
+          puts issue_ranges
         end
       end
 
