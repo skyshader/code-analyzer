@@ -7,6 +7,7 @@ module Stats
         @branch = branch
         @languages = {}
         @stats = {}
+        @s = []
       end
 
 
@@ -21,7 +22,7 @@ module Stats
           @stats[language]['issues_count'] += file.code_issues.where(version: @branch.current_version + 1).count
           @stats[language]['files_count'] += 1
         end
-       @stats
+       formatter
       end
 
 
@@ -33,13 +34,14 @@ module Stats
       def formatter
         @stats.each do |lang, stats|
           lang = SupportedLanguage.where(name: lang).first
-          @stats << {
+          @s << {
             supported_language_id: lang.id,
             branch_id: @branch.id,
             issues_count: stats['issues_count'],
             files_count: stats['files_count']
           }
         end
+        @s
       end
     end
 
