@@ -31,6 +31,8 @@ class Branch < ActiveRecord::Base
     CodeIssue.transaction do
       ActiveRecord::Base.connection_pool.with_connection do
         CodeIssue.where(branch_id: branch.id, version: (branch.current_version + 1)).delete_all
+        LanguageStat.where(branch_id: branch.id, version: (branch.current_version + 1)).delete_all
+        CategoryStat.where(branch_id: branch.id, version: (branch.current_version + 1)).delete_all
       end
     end
   end
