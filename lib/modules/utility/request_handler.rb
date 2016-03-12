@@ -22,7 +22,11 @@ module Utility
         end
       end
 
-      return false if repository.nil?
+      return {
+        success: false,
+        status: 2,
+        message: "The requested repository does not exists!"
+      } if repository.nil?
       
       new(
         repository: repository,

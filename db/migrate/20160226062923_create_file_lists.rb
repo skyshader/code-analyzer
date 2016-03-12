@@ -10,6 +10,10 @@ class CreateFileLists < ActiveRecord::Migration
       t.string :relative_path
       t.string :parent_path
       t.text :full_path
+      t.integer :lines_blank
+      t.integer :lines_comment
+      t.integer :lines_code
+      t.float :gpa
       t.integer :is_excluded, default: 0
       t.integer :status, default: 1
 

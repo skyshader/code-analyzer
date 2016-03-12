@@ -68,6 +68,7 @@ module Utility
 
     def get_file_info path
       is_directory = FileTest.directory?(path)
+      cloc = get_cloc_stats(path, is_directory)
       {
         name: File.basename(path),
         is_file:  is_directory ? 0 : 1,
@@ -78,8 +79,25 @@ module Utility
         relative_path: project_relative_path(path),
         parent_path: parent_path(path),
         full_path: path,
+        lines_blank: cloc[:lines_blank],
+        lines_comment: cloc[:lines_comment],
+        lines_code: cloc[:lines_code],
         supported_language_id: is_directory ? nil : file_language(File.extname(path)),
         branch: @branch
+      }
+    end
+
+    def get_cloc_stats path, is_directory
+      file = nil
+      if !is_directory
+        result = `cloc #{path} --xml --by-file --quiet`
+        require 'nokogiri'
+        file = Nokogiri::XML(result).xpath("//files/file").first
+      end
+      {
+        lines_blank: file ? file['blank'] : nil,
+        lines_comment: file ? file['comment'] : nil,
+        lines_code: file ? file['code'] : nil
       }
     end
 

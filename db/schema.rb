@@ -100,6 +100,10 @@ ActiveRecord::Schema.define(version: 20160310064154) do
     t.string   "relative_path",         limit: 255
     t.string   "parent_path",           limit: 255
     t.text     "full_path",             limit: 65535
+    t.integer  "lines_blank",           limit: 4
+    t.integer  "lines_comment",         limit: 4
+    t.integer  "lines_code",            limit: 4
+    t.float    "gpa",                   limit: 24
     t.integer  "is_excluded",           limit: 4,     default: 0
     t.integer  "status",                limit: 4,     default: 1
     t.integer  "branch_id",             limit: 4
