@@ -13,7 +13,7 @@ module Stats
             puts "--------------------->>>>>>>>><<<<<<<<<-----------------------"
             puts category_stats
             puts "--------------------->>>>>>>>><<<<<<<<<-----------------------"
-            language_stats = Stats::Generator::Language.new(branch: @branch).generate
+            language_stats = Stats::Generator::Language.new(branch: @branch).generate_new
             puts "--------------------->>>>>>>>><<<<<<<<<-----------------------"
             puts language_stats
             puts "--------------------->>>>>>>>><<<<<<<<<-----------------------"

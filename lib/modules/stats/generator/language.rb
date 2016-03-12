@@ -4,9 +4,11 @@ module Stats
     class Language
 
       def initialize(branch:)
+        puts "1"
         @branch = branch
         @languages = {}
         @language_stats = []
+        puts "2"
       end
 
 
@@ -24,6 +26,19 @@ module Stats
        @language_stats
       end
 
+      def generate_new
+        puts "3"
+        SupportedLanguage.each do |lang|
+          puts "4"
+          language_stats << {
+            supported_language_id: lang.id
+            issues_count: lang.file_list.code_issues.where(version: @branch.current_version + 1).count
+            files_count: lang.file_list.count
+            version: @branch.current_version + 1
+          }
+        end
+        language_stats
+      end
 
       ##
       # Check if this language's stat exists or not
