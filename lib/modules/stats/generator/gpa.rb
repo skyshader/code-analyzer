@@ -36,7 +36,7 @@ module Stats
 
       def process_repo
         total_gpa = total_files = 0
-        gpa = 4
+        gpa = GPA_DEFAULT
         FileList.get_files_to_process(@branch).each do |file|
           unless file.gpa.nil?
             total_gpa += file.gpa
