@@ -11,8 +11,10 @@ module Analyzer
         def initialize branch
           @branch = branch
           @issue_categories = {}
-          IssueCategory.find_each do |category|
-            @issue_categories[category.name.to_sym] = category.id
+          ActiveRecord::Base.connection_pool.with_connection do
+            IssueCategory.find_each do |category|
+              @issue_categories[category.name.to_sym] = category.id
+            end
           end
           @file_list = {}
           @config = ::Analyzer::Engines::CSS::Config
@@ -71,7 +73,9 @@ module Analyzer
         end
 
         def get_file(path)
-          @file_list[path.to_sym] ||= FileList.find_by(full_path: path)
+          ActiveRecord::Base.connection_pool.with_connection do
+            @file_list[path.to_sym] ||= FileList.find_by(full_path: path)
+          end
         end
 
 

@@ -52,4 +52,10 @@ class FileList < ActiveRecord::Base
     end
   end
 
+  def self.get_files branch, language
+    ActiveRecord::Base.connection_pool.with_connection do
+      FileList.where(branch_id: branch.id, supported_language_id: language.id)
+    end
+  end
+  
 end
