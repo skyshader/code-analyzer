@@ -11,10 +11,10 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       # routes for activity data
-      # get 'activity/index', to: 'activity#index', as: :activty_index_path
+      get 'activity/index', to: 'activity#index'
 
       # routes for analyzer data
-      # get 'analysis/index', to: 'activity#index', as: :activty_index_path
+      resources :repositories, only: [:show]
 
     end
   end

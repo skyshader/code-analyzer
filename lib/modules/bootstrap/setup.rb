@@ -23,7 +23,11 @@ module Bootstrap
           setup_repository
         end
       end
-      { :success => true, :message => "Please wait while we setup your repository!" }
+      {
+        :success => true,
+        :repository_id => @repository.id,
+        :message => "Please wait while we setup your repository!"
+      }
     end
 
 
