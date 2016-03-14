@@ -22,7 +22,7 @@ module Stats
       def process_files
         FileList.get_files_to_process(@branch).each do |file|
           issue_ranges, error_points = [], 0
-          file.code_issues.where(version: @branch.current_version + 1).each do |issue|
+          CodeIssue.get_file_issues(@branch, file).each do |issue|
             error_points += issue[:weight]
             current_range = issue[:begin_line]..issue[:end_line]
             issue_ranges << current_range if issue_ranges.size === 0
