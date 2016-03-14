@@ -14,7 +14,7 @@ module Stats
       #
       def generate
         SupportedLanguage.find_each do |lang|
-          files = lang.file_lists
+          files = lang.file_lists.where(branch_id: @branch.id)
           @language_stats << {
              supported_language_id: lang.id,
              issues_count: get_issue_count(files),

@@ -39,4 +39,13 @@ class Branch < ActiveRecord::Base
     end
   end
 
+
+  def self.update_gpa branch, gpa
+    ActiveRecord::Base.connection_pool.with_connection do
+      Branch.transaction do
+        branch.update(gpa: gpa)
+      end
+    end
+  end
+
 end

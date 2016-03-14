@@ -20,7 +20,7 @@ module Stats
             files_count: 0,
             version: @branch.current_version + 1
           }
-          code_issues = category.code_issues.where(version: @branch.current_version + 1)
+          code_issues = category.code_issues.where(branch_id: @branch.id, version: @branch.current_version + 1)
           stat[:issues_count] += code_issues.count
           
           stat[:files_count] += get_file_count(code_issues)

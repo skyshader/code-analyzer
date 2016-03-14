@@ -43,4 +43,13 @@ class FileList < ActiveRecord::Base
     end
   end
 
+
+  def self.update_score file, score
+    ActiveRecord::Base.connection_pool.with_connection do
+      FileList.transaction do
+        file.update(gpa: score)
+      end
+    end
+  end
+
 end
