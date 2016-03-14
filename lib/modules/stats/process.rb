@@ -17,7 +17,10 @@ module Stats
           @branch.language_stats.create(language_stats)
         end
       end
+      Rails.logger.debug "------ Generated Stats ------"
       Stats::Generator::GPA.grade_files(branch: @branch)
+      Stats::Generator::GPA.grade_repo(branch: @branch)
+      Rails.logger.debug "------ Generated GPA ------"
     end
 
   end

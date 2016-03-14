@@ -16,6 +16,7 @@ ActiveRecord::Schema.define(version: 20160310064154) do
   create_table "branches", force: :cascade do |t|
     t.string   "name",            limit: 255
     t.integer  "current_version", limit: 4,   default: 0
+    t.float    "gpa",             limit: 24
     t.integer  "status",          limit: 4,   default: 1
     t.integer  "repository_id",   limit: 4
     t.datetime "created_at",                              null: false
