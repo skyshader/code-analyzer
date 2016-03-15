@@ -9,13 +9,15 @@ module Analyzer
       class Formatter
 
         def initialize branch
-            @branch = branch
-            @issue_categories = {}
+          @branch = branch
+          @issue_categories = {}
+          ActiveRecord::Base.connection_pool.with_connection do
             IssueCategory.find_each do |category|
-            @issue_categories[category.name.to_sym] = category.id
+              @issue_categories[category.name.to_sym] = category.id
             end
-            @file_list = {}
-            @config = ::Analyzer::Engines::Javascript::Config
+          end
+          @file_list = {}
+          @config = ::Analyzer::Engines::Javascript::Config
         end
 
         def xml_to_hash xml
@@ -74,7 +76,9 @@ module Analyzer
         end
 
         def get_file(path)
-          @file_list[path.to_sym] ||= FileList.find_by(full_path: path)
+          ActiveRecord::Base.connection_pool.with_connection do
+            @file_list[path.to_sym] ||= FileList.find_by(full_path: path)
+          end
         end
 
       end

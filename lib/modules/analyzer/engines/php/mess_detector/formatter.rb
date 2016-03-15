@@ -13,8 +13,10 @@ module Analyzer
           def initialize branch
             @branch = branch
             @issue_categories = {}
-            IssueCategory.find_each do |category|
-              @issue_categories[category.name.to_sym] = category.id
+            ActiveRecord::Base.connection_pool.with_connection do
+              IssueCategory.find_each do |category|
+                @issue_categories[category.name.to_sym] = category.id
+              end
             end
             @file_list = {}
             @config = ::Analyzer::Engines::PHP::MessDetector::Config
@@ -82,7 +84,9 @@ module Analyzer
 
 
           def get_file(path)
+            ActiveRecord::Base.connection_pool.with_connection do
               @file_list[path.to_sym] ||= FileList.find_by(full_path: path)
+            end
           end
 
         end

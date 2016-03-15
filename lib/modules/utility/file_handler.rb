@@ -108,13 +108,16 @@ module Utility
         language = k if v.include?(ext)
       end
       return language unless language
-
-      @languages[language] ||= SupportedLanguage.where(name: language).first.id
+      ActiveRecord::Base.connection_pool.with_connection do
+        @languages[language] ||= SupportedLanguage.where(name: language).first.id
+      end
     end
 
     
     def get_language file
-      @languages[file.supported_language_id] ||= file.supported_language.name
+      ActiveRecord::Base.connection_pool.with_connection do
+        @languages[file.supported_language_id] ||= file.supported_language.name
+      end
     end
 
 
