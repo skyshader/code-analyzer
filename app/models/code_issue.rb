@@ -29,7 +29,7 @@ class CodeIssue < ActiveRecord::Base
 
   def self.get_category_issues branch, category
     ActiveRecord::Base.connection_pool.with_connection do
-      CodeIssue.where(branch_id: @branch.id, version: @branch.current_version + 1, issue_category_id: category.id)
+      CodeIssue.where(branch_id: branch.id, version: branch.current_version + 1, issue_category_id: category.id)
     end
   end
 
