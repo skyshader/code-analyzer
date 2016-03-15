@@ -13,8 +13,13 @@ Rails.application.routes.draw do
       # routes for activity data
       get 'activity/index', to: 'activity#index'
 
-      # routes for analyzer data
+      # resources for analyzer data
       resources :repositories, only: [:show]
+      resources :branches, only: [:show]
+      resources :file_lists, only: [:show]
+
+      # custom routes for analyzer data
+      get 'repositories/all/:project_id', to: 'repositories#all'
 
     end
   end
