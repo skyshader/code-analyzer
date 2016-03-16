@@ -39,14 +39,14 @@ module Analyzer
 
     # common directories to avoid
     def dir_excluded
-      ['.', '..', '.git', 'log', 'logs', 'tmp', 'temp']
+      ['.', '..', '.git', 'log', 'logs', 'tmp', 'temp', 'test', 'tests', 'bin']
     end
 
 
     # generate regex for commonly excluded file types
     # for ex: dot files, .md files
     def ext_excluded_regex
-      Regexp.union(/^\..*$/i, /^.*(.md)$/i)
+      Regexp.union(/^\..*$/i, /^.*(.md)$/i, /^.*(.zip)$/i, /^.*(.rar)$/i)
     end
 
   end

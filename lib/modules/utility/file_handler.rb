@@ -20,17 +20,21 @@ module Utility
       require 'find'
       @all_files = []
       Find.find(@directory.to_s + "/") do |path|
-        file_info = get_file_info path
         if FileTest.directory?(path)
-          if @analyzer_config.dir_excluded.include?(file_info[:name])
+          if @analyzer_config.dir_excluded.include?(File.basename(path).downcase)
             Find.prune
+          else
+            file_info = get_file_info path
+            @all_files << file_info
           end
         else
-          if !@analyzer_config.ext_supported.include?(file_info[:extension])
+          if !@analyzer_config.ext_supported.include?(File.extname(path).downcase)
             next
+          else
+            file_info = get_file_info path
+            @all_files << file_info
           end
         end
-        @all_files << file_info
       end
       self
     rescue => e
@@ -83,7 +87,7 @@ module Utility
         lines_comment: cloc[:lines_comment],
         lines_code: cloc[:lines_code],
         supported_language_id: is_directory ? nil : file_language(File.extname(path)),
-        branch: @branch
+        branch_id: @branch_id
       }
     end
 
@@ -164,22 +168,26 @@ module Utility
     def create_batches files_groups
       batch = {}
       max_batch_size = 100000
+      max_batch_files = 10
       files_groups.each do |key, files|
+        current_batch_index = 0
+        current_batch_size = 0
+        current_batch_files = 0
         batch[key] = []
+        batch[key][current_batch_index] ||= []
         files.each do |file|
-          current_batch_index = 0
-          current_batch_size = 0
           if file.file_size <= 0
             next
-          elsif file.file_size >= (max_batch_size - current_batch_size)
-            current_batch_index += 1 if !batch[key][current_batch_index].nil?
+          elsif file.file_size < (max_batch_size - current_batch_size) && current_batch_files < max_batch_files
+            batch[key][current_batch_index] << file
+            current_batch_size += file.file_size
+            current_batch_files += 1
+          else
+            current_batch_index += 1
             batch[key][current_batch_index] ||= []
             batch[key][current_batch_index] << file
             current_batch_size = file.file_size
-          elsif file.file_size < (max_batch_size - current_batch_size)
-            batch[key][current_batch_index] ||= []
-            batch[key][current_batch_index] << file
-            current_batch_size += file.file_size
+            current_batch_files = 1
           end
         end
       end

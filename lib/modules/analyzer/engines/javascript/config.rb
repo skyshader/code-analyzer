@@ -8,7 +8,7 @@ module Analyzer
 
       class Config
         DEFAULT_POINT = 50000
-        RESULT_CONFIG = '-c ~/eslintrc -f checkstyle'
+        RESULT_CONFIG = '-c ~/.eslintrc -f checkstyle'
 
         CATEGORY = {
             "eslint.rules.accessor-pairs" => ["bug risk", 50000],

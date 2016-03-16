@@ -47,7 +47,7 @@ module Analyzer
 
 
           def execute_phpmd_command files
-            `phpmd #{files} #{@engine_config::RESULT_FORMAT} #{@engine_config::RULESETS}`
+            `cd #{@directory} & phpmd #{files} #{@engine_config::RESULT_FORMAT} #{@engine_config::RULESETS}`
           end
 
         end
