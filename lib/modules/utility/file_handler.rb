@@ -6,12 +6,31 @@ module Utility
 
     attr_reader :repository, :directory, :all_files, :existing_files, :difference, :analyzer_config
 
+    MAX_BATCH_SIZE = 100000
+    MAX_BATCH_FILES = 10
+    MAX_CODE_LIMIT_ONE_LINE = 500
+    MAX_CODE_LIMIT_GROUP = 100
+
+
     def initialize(repository:, branch:)
       @repository = repository
       @directory = repository.directory
       @branch = branch
       @analyzer_config = Analyzer::BaseConfig.new
       @languages = {}
+    end
+
+
+    def self.extract_source_code file, from, to
+      file = File.open(file)
+      code = ""
+      (from.to_i - 1).times { file.gets }
+      (to.to_i - (from.to_i - 1)).times do |i|
+        code += file.gets.truncate(MAX_CODE_LIMIT_ONE_LINE)
+        break if i >= MAX_CODE_LIMIT_GROUP
+      end
+      file.close
+      code.force_encoding('iso-8859-1').encode('utf-8')
     end
 
 
@@ -167,8 +186,6 @@ module Utility
 
     def create_batches files_groups
       batch = {}
-      max_batch_size = 100000
-      max_batch_files = 10
       files_groups.each do |key, files|
         current_batch_index = 0
         current_batch_size = 0
@@ -176,9 +193,7 @@ module Utility
         batch[key] = []
         batch[key][current_batch_index] ||= []
         files.each do |file|
-          if file.file_size <= 0
-            next
-          elsif file.file_size < (max_batch_size - current_batch_size) && current_batch_files < max_batch_files
+          if file.file_size < (MAX_BATCH_SIZE - current_batch_size) && current_batch_files < MAX_BATCH_FILES
             batch[key][current_batch_index] << file
             current_batch_size += file.file_size
             current_batch_files += 1

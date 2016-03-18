@@ -74,12 +74,7 @@ module Analyzer
 
 
           def get_source_code(file, begin_line, end_line)
-            file = File.open(file)
-            code = ""
-            (begin_line.to_i - 1).times { file.gets }
-            (end_line.to_i - (begin_line.to_i - 1)).times { code += file.gets }
-            file.close
-            code
+            Utility::FileHandler.extract_source_code file, begin_line, end_line
           end
 
 

@@ -36,7 +36,7 @@ module Stats
 
       def process_repo
         total_gpa = total_files = 0
-        gpa = GPA_DEFAULT
+        gpa = 0
         FileList.get_files_to_process(@branch).each do |file|
           unless file.gpa.nil?
             total_gpa += file.gpa
@@ -57,7 +57,7 @@ module Stats
 
       def generate_file_score file, issue_ranges, error_points
         error_lines = count_ranges(issue_ranges)
-        safe_lines = file[:lines_code] - error_lines
+        safe_lines = file[:lines_code].to_i - error_lines
         safe_lines = 0 if safe_lines < 0
         safe_points = safe_lines * DEFAULT_SAFE_POINTS
         expected_points = file[:lines_code] * DEFAULT_SAFE_POINTS
