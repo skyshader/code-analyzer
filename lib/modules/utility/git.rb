@@ -2,7 +2,6 @@ module Utility
 
   CloneFailureError = Class.new(StandardError)
   PullFailureError = Class.new(StandardError)
-  CheckoutFailureError = Class.new(StandardError)
 
   class Git
 
@@ -22,11 +21,8 @@ module Utility
 
     # run pull command to get fresh repo
     def pull repository
-      checkout_cmd = "git checkout " + repository.current_branch
-      system(checkout_cmd)
-      raise CheckoutFailureError, "Failed to pull from repository" if $? != 0
+      pull_cmd = "git checkout " + repository.current_branch + " && git pull origin " + repository.current_branch;
 
-      pull_cmd = "git pull origin " + repository.current_branch;
       system(pull_cmd)
       raise PullFailureError, "Failed to pull from repository" if $? != 0
       self

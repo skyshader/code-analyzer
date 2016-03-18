@@ -106,14 +106,14 @@ module Utility
         lines_comment: cloc[:lines_comment],
         lines_code: cloc[:lines_code],
         supported_language_id: is_directory ? nil : file_language(File.extname(path)),
-        branch_id: @branch_id
+        branch_id: @branch.id
       }
     end
 
     def get_cloc_stats path, is_directory
       file = nil
       if !is_directory
-        result = `cloc #{path} --xml --by-file --quiet`
+        result = `cloc "#{path}" --xml --by-file --quiet`
         require 'nokogiri'
         file = Nokogiri::XML(result).xpath("//files/file").first
       end
