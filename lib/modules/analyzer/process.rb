@@ -74,8 +74,6 @@ module Analyzer
           branch: @branch
         ).grouped_file_batches
 
-        puts @batches
-
         # run tasks
         Analyzer::TaskRunner.new(
           repository: @repository,
