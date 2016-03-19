@@ -26,7 +26,8 @@ module Utility
       code = ""
       (from.to_i - 1).times { file.gets }
       (to.to_i - (from.to_i - 1)).times do |i|
-        code += file.gets.truncate(MAX_CODE_LIMIT_ONE_LINE)
+        line = file.gets
+        code += line.truncate(MAX_CODE_LIMIT_ONE_LINE) if line
         break if i >= MAX_CODE_LIMIT_GROUP
       end
       file.close
@@ -113,7 +114,7 @@ module Utility
     def get_cloc_stats path, is_directory
       file = nil
       if !is_directory
-        result = `cloc #{path} --xml --by-file --quiet`
+        result = `cloc "#{path}" --xml --by-file --quiet`
         require 'nokogiri'
         file = Nokogiri::XML(result).xpath("//files/file").first
       end
