@@ -106,7 +106,7 @@ module Utility
         lines_comment: cloc[:lines_comment],
         lines_code: cloc[:lines_code],
         supported_language_id: is_directory ? nil : file_language(File.extname(path)),
-        branch_id: @branch_id
+        branch_id: @branch.id
       }
     end
 

@@ -21,4 +21,7 @@ Vagrant.configure(2) do |config|
   # Forward the default port 80 to 8000
   config.vm.network :forwarded_port, guest: 80, host: 8080
 
+  # Forward the mysql default port 3306 to 3333
+  config.vm.network :forwarded_port, guest: 3306, host: 9999
+
 end

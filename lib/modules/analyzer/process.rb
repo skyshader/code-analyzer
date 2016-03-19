@@ -60,19 +60,21 @@ module Analyzer
     def run_analyzer
       Dir.chdir(@directory) do
         # freshen up the repository
-        # git.pull(@repository)
+        git.pull(@repository)
 
         # update file listing
-        # Utility::FileHandler.new(
-        #   repository: @repository,
-        #   branch: @branch
-        # ).list_files.diff_files.save
+        Utility::FileHandler.new(
+          repository: @repository,
+          branch: @branch
+        ).list_files.diff_files.save
 
         # get grouped files by extensions
         @batches = Utility::FileHandler.new(
           repository: @repository,
           branch: @branch
         ).grouped_file_batches
+
+        puts @batches
 
         # run tasks
         Analyzer::TaskRunner.new(

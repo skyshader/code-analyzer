@@ -39,7 +39,7 @@ module Bootstrap
     def setup_repository
       get_bootstrap_config.path_setup
       Dir.chdir(@directory) do
-        # git.empty().clone(@repository).pull(@repository)
+        git.empty().clone(@repository).pull(@repository)
         Utility::FileHandler.new(
           repository: @repository,
           branch: @branch

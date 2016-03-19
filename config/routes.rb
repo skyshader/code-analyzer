@@ -11,15 +11,15 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       # routes for activity data
-      get 'activity/index', to: 'activity#index'
+      # get 'activity/index', to: 'activity#index'
 
       # resources for analyzer data
-      resources :repositories, only: [:show]
-      resources :branches, only: [:show]
-      resources :file_lists, only: [:show]
+      # resources :branches, only: [:show]
+      # resources :file_lists, only: [:show]
 
-      # custom routes for analyzer data
-      get 'repositories/all/:project_id', to: 'repositories#all'
+      # routes for repositories
+      get 'repositories/get/:id', to: 'repositories#get'
+      get 'repositories/all_by_project/:project_id', to: 'repositories#all_by_project'
 
     end
   end
