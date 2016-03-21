@@ -2,8 +2,13 @@ class FileListSerializer < ActiveModel::Serializer
 
   attributes :id, :relative_path
 
-  has_many :code_issues
+  belongs_to :repository do
+    object.branch.repository
+  end
+
   belongs_to :branch
-  belongs_to :supported_language
+  belongs_to :language do
+    object.supported_language || {}
+  end
 
 end

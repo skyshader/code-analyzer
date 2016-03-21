@@ -21,6 +21,14 @@ Rails.application.routes.draw do
       get 'repositories/get/:id', to: 'repositories#get'
       get 'repositories/all_by_project/:project_id', to: 'repositories#all_by_project'
 
+      # routes for branches
+      get 'branches/get_default/:repository_id', to: 'branches#get_default'
+      get 'branches/get_by_name/:name/:repository_id', to: 'branches#get_by_name'
+
+      # routes for files
+      get 'files/get_files_by_default_branch/:repository_id', to: 'files#get_files_by_default_branch'
+      get 'files/get_files_by_branch/:name/:repository_id', to: 'files#get_files_by_branch'
+
     end
   end
 

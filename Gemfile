@@ -31,6 +31,12 @@ gem 'sdoc', '~> 0.4.0', group: :doc
 # Gem to generate git statistics
 gem 'git_stats', github: 'skyshader/git_stats'
 
+# Gem to paginate on large dataset
+gem 'will_paginate'
+
+# Gem to generate paginate headers in api
+gem 'api-pagination'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'

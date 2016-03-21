@@ -48,4 +48,24 @@ class Branch < ActiveRecord::Base
     end
   end
 
+
+  #---------------------------------------------------
+  # For API
+  # Not running on thread
+  #---------------------------------------------------
+
+  def self.get_default_branch repository_id
+    repository = Repository.find(repository_id)
+    branch = repository.branches.where(name: repository.default_branch).first
+    raise ActiveRecord::RecordNotFound unless branch
+    branch
+  end
+
+
+  def self.get_branch name, repository_id
+    branch = Branch.find_by_name_and_repository_id(name, repository_id)
+    raise ActiveRecord::RecordNotFound unless branch
+    branch
+  end
+
 end

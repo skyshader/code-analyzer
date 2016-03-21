@@ -4,7 +4,7 @@ module Utility
 
   class FileHandler
 
-    attr_reader :repository, :directory, :all_files, :existing_files, :difference, :analyzer_config
+    attr_reader :repository, :branch, :directory, :all_files, :existing_files, :difference, :analyzer_config
 
     MAX_BATCH_SIZE = 100000
     MAX_BATCH_FILES = 10
