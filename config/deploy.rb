@@ -6,7 +6,7 @@ set :application, "analyzer"
 
 # Default value for :scm is :git
 set :scm, :git
-set :repo_url, "git@github.com:skyshader/code-analyzer.git"
+set :repo_url, "git@github.com-shardenduvp:venturepact/code-analyzer.git"
 
 # User on our server that Capistrano uses
 set :user, 'deploy'
