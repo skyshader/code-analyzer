@@ -13,6 +13,7 @@ class Api::V1::BranchesController < Api::V1::BaseController
   #
   def get_by_name
     branch = Branch.find_by_name_and_repository_id(params[:name], params[:repository_id])
+    raise ActiveRecord::RecordNotFound unless branch
     render json: branch
   end
 
