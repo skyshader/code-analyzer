@@ -17,6 +17,10 @@ Rails.application.routes.draw do
       # resources :branches, only: [:show]
       # resources :file_lists, only: [:show]
 
+      # routes for overview
+      get 'overview/get_default/:repository_id', to: 'overview#get_default'
+      get 'overview/get_by_branch/:name/:repository_id', to: 'overview#get_by_branch'
+
       # routes for repositories
       get 'repositories/get/:id', to: 'repositories#get'
       get 'repositories/all_by_project/:project_id', to: 'repositories#all_by_project'
