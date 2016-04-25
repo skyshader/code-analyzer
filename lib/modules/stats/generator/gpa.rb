@@ -35,15 +35,15 @@ module Stats
 
 
       def process_repo
-        gpa = 0
+        grade = 0
         total_code_lines = count_total_code_lines
         FileList.get_files_to_process(@branch).find_each do |file|
-          unless file.gpa.nil?
-            file_grade = (file.lines_code / total_code_lines.to_f) * file.gpa
-            gpa += file_grade
+          unless file.grade.nil?
+            file_grade = (file.lines_code / total_code_lines.to_f) * file.grade
+            grade += file_grade
           end
         end
-        Branch.update_gpa(@branch, gpa.round(2))
+        Branch.update_score(@branch, grade.round(2))
       end
 
 

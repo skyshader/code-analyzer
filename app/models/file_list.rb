@@ -4,7 +4,6 @@ class FileList < ActiveRecord::Base
   belongs_to :branch
   belongs_to :supported_language
 
-
   # create a new file listing as per directory structure
   def self.create_file_lists files
     return if files.empty?
@@ -47,9 +46,10 @@ class FileList < ActiveRecord::Base
 
 
   def self.update_score file, score
+    gpa = Utility::GPAHelper.gpa(score)
     ActiveRecord::Base.connection_pool.with_connection do
       FileList.transaction do
-        file.update(gpa: score)
+        file.update(gpa: gpa, grade: score)
       end
     end
   end

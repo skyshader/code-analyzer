@@ -39,7 +39,7 @@ module Analyzer
 
     # common directories to avoid
     def dir_excluded
-      ['.', '..', '.git', 'log', 'logs', 'tmp', 'temp', 'test', 'tests', 'bin']
+      ['.', '..', '.git', 'log', 'logs', 'tmp', 'temp', 'tests', 'bin']
     end
 
 

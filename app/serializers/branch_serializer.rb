@@ -1,6 +1,6 @@
 class BranchSerializer < ActiveModel::Serializer
 
-  attributes :id, :name, :gpa
+  attributes :id, :name, :gpa, :grade
   
   belongs_to :repository
 
