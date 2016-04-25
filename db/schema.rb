@@ -16,7 +16,8 @@ ActiveRecord::Schema.define(version: 20160310064154) do
   create_table "branches", force: :cascade do |t|
     t.string   "name",            limit: 255
     t.integer  "current_version", limit: 4,   default: 0
-    t.float    "gpa",             limit: 24
+    t.float    "grade",           limit: 24
+    t.string   "gpa",             limit: 255
     t.integer  "status",          limit: 4,   default: 1
     t.integer  "repository_id",   limit: 4
     t.datetime "created_at",                              null: false
@@ -104,7 +105,8 @@ ActiveRecord::Schema.define(version: 20160310064154) do
     t.integer  "lines_blank",           limit: 4
     t.integer  "lines_comment",         limit: 4
     t.integer  "lines_code",            limit: 4
-    t.float    "gpa",                   limit: 24
+    t.float    "grade",                 limit: 24
+    t.string   "gpa",                   limit: 255
     t.integer  "is_excluded",           limit: 4,     default: 0
     t.integer  "status",                limit: 4,     default: 1
     t.integer  "branch_id",             limit: 4

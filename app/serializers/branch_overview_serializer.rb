@@ -1,7 +1,7 @@
 class BranchOverviewSerializer < ActiveModel::Serializer
 
   # attributes :repository, :branch, :category_stats, :language_stats, :files, :issues
-  attributes :id, :name, :gpa, :current_version
+  attributes :id, :name, :gpa, :grade, :current_version, :file_stats
 
   belongs_to :repository
 
@@ -33,6 +33,10 @@ class BranchOverviewSerializer < ActiveModel::Serializer
   has_one :last_completed_request do
     request = object.request_logs.where(is_complete: 1, status: 0).last
     request ? request : {}
+  end
+
+  def file_stats
+    object.file_lists.where.not(:gpa => nil).group(:gpa).count
   end
 
 end

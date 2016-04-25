@@ -3,7 +3,8 @@ class CreateBranches < ActiveRecord::Migration
     create_table :branches do |t|
       t.string :name
       t.integer :current_version, default: 0
-      t.float :gpa
+      t.float :grade
+      t.string :gpa
       t.integer :status, default: 1
       t.references :repository, index: true, foreign_key: true
 
