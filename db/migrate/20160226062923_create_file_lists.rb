@@ -13,7 +13,8 @@ class CreateFileLists < ActiveRecord::Migration
       t.integer :lines_blank
       t.integer :lines_comment
       t.integer :lines_code
-      t.float :gpa
+      t.float  :grade
+      t.string :gpa
       t.integer :is_excluded, default: 0
       t.integer :status, default: 1
 

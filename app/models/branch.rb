@@ -40,10 +40,11 @@ class Branch < ActiveRecord::Base
   end
 
 
-  def self.update_gpa branch, gpa
+  def self.update_score branch, score
+    gpa = Utility::GPAHelper.gpa(score)
     ActiveRecord::Base.connection_pool.with_connection do
       Branch.transaction do
-        branch.update(gpa: gpa)
+        branch.update(gpa: gpa, grade: score)
       end
     end
   end

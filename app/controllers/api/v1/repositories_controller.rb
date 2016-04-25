@@ -5,7 +5,12 @@ class Api::V1::RepositoriesController < Api::V1::BaseController
   #
   def all_by_project
     repositories = Repository.find_by_project_id(params[:project_id])
-    render json: repositories
+    render json: repositories, serializer: RepositorySerializer, include: [
+      'branches',
+      'default_branch',
+      'branches.current_request',
+      'branches.last_completed_request',
+    ]
   end
 
 
