@@ -1,4 +1,4 @@
-module Repository
+module Utility
   class SSHKey
 
     attr_reader :username, :email, :host, :ssh_file
