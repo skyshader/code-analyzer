@@ -4,7 +4,7 @@ class Api::V1::RepositoriesController < Api::V1::BaseController
   # List all repositories for a project
   #
   def all_by_project
-    repositories = Repository.find_by_project_id(params[:project_id])
+    repositories = Repository.where(project_id: params[:project_id])
     raise ActiveRecord::RecordNotFound unless repositories
     render json: repositories, serializer: RepositorySerializer, include: [
       'branches',
