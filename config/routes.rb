@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   root 'main#index'
   
   # paths to tasks
-  get 'ssh/generate/:username/:email/:host', to: 'main#ssh', as: :generate_key
+  post 'ssh/generate', to: 'main#ssh', as: :generate_key
   post 'repository/setup', to: 'main#setup', as: :setup_path
   post 'repository/analyze', to: 'main#analyze', as: :analyze_path
   post 'repository/activity', to: 'main#activity', as: :activity_path

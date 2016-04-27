@@ -46,9 +46,8 @@ class MainController < ApplicationController
 
   # for adding ssh keys to access private repos
   def ssh
-    username = params[:username]
-    email = Base64.decode64(params[:email])
-    host = Base64.decode64(params[:host])
+    data = params[:ssh].symbolize_keys
+    username, email, host = data[:username], data[:email], data[:host]
     @data = Utility::SSHKey.generate(username, email, host)
     render json: @data
   rescue => e
