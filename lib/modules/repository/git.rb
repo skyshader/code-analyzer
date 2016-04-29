@@ -24,7 +24,7 @@ module Repository
     # run pull command to get fresh repo
     def self.pull(repo, type)
       Dir.chdir(repo.current_branch)
-      pull_cmd = "git checkout " + repo.current_branch + " & git pull origin " + repo.current_branch;
+      pull_cmd = "git checkout " + repo.current_branch + " && git pull origin " + repo.current_branch;
       system(pull_cmd)
       if $? != 0 then
         raise 'Not able to pull from repository.'
