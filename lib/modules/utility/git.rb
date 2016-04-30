@@ -10,7 +10,7 @@ module Utility
       ssh_url = repository.ssh_url.clone
       # for private repo convert ssh url to use ssh config
       if repository.is_private === 1
-        ssh_url = ssh_url.insert(ssh_url.index(':'), "-" + repository.username)
+        ssh_url = ssh_url.insert(ssh_url.index(':'), "-" + repository.owner)
       end
 
       system("git clone #{ssh_url} .")
