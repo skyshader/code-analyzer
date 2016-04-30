@@ -11,7 +11,8 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       # routes for activity data
-      # get 'activity/index', to: 'activity#index'
+      get 'activity/get_default/:repository_id', to: 'activity#get_default'
+      get 'activity/get_by_branch/:name/:repository_id', to: 'activity#get_by_branch'
 
       # resources for analyzer data
       # resources :branches, only: [:show]

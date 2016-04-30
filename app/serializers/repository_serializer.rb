@@ -6,6 +6,10 @@ class RepositorySerializer < ActiveModel::Serializer
     object.branches.find_by_name(object.default_branch)
   end
 
+  has_one :current_branch do
+    object.branches.find_by_name(object.current_branch)
+  end
+
   has_many :branches
   has_many :request_logs, key: :requests
 
