@@ -9,6 +9,7 @@ class Api::V1::RepositoriesController < Api::V1::BaseController
     render json: repositories, each_serializer: RepositorySerializer, include: [
       'branches',
       'default_branch',
+      'current_branch',
       'branches.current_request',
       'branches.last_completed_request',
     ]
