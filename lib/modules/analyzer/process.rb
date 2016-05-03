@@ -24,7 +24,7 @@ module Analyzer
         Repository.transaction do
           repository = Repository.get_repository data
           branch = Branch.setup_branch repository if !repository.nil?
-          Repository.update(current_branch: branch.name)
+          repository.update(current_branch: branch.name)
         end
       end
 

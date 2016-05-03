@@ -11,7 +11,11 @@ class Api::V1::RepositoriesController < Api::V1::BaseController
       'default_branch',
       'current_branch',
       'branches.current_request',
+      'default_branch.current_request',
+      'current_branch.current_request',
       'branches.last_completed_request',
+      'default_branch.last_completed_request',
+      'current_branch.last_completed_request',
     ]
   end
 
