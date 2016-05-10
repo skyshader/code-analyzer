@@ -35,7 +35,7 @@ class RequestLog < ActiveRecord::Base
 
 
   def self.discard_active_requests
-    RequestLog.where(is_active: 1).update_all(is_active: 0, status: 0) if force
+    RequestLog.where(is_active: 1).update_all(is_active: 0, status: 0)
   end
 
 
