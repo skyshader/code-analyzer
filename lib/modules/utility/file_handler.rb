@@ -102,7 +102,7 @@ module Utility
         fhash: is_directory ? nil : Digest::SHA256.file(path).hexdigest,
         relative_path: project_relative_path(path),
         parent_path: parent_path(path),
-        full_path: path,
+        full_path: Pathname.new(path).realpath.to_s,
         lines_blank: cloc[:lines_blank],
         lines_comment: cloc[:lines_comment],
         lines_code: cloc[:lines_code],
